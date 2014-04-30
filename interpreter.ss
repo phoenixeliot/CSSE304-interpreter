@@ -69,18 +69,52 @@
 
 (define apply-prim-proc
   (lambda (prim-proc args)
-    ;(if (memv prim-proc *prim-proc-names*)
-    ;    (apply (prim-proc) args)
-    ;    'error)))
-
     (case prim-proc
       [(+) (apply + args)]
-      [(-) (- (1st args) (2nd args))]
-      [(*) (* (1st args) (2nd args))]
-      [(add1) (+ (1st args) 1)]
-      [(sub1) (- (1st args) 1)]
-      [(cons) (cons (1st args) (2nd args))]
-      [(=) (= (1st args) (2nd args))]
+      [(-) (apply - args)]
+      [(*) (apply * args)]
+      [(/) (apply / args)]
+      [(add1) (apply add1 args)]
+      [(sub1) (apply sub1 args)]
+      [(zero?) (apply zero? args)]
+      [(not) (apply not args)]
+      [(=) (apply = args)]
+      [(<) (apply < args)]
+      [(>) (apply > args)]
+      [(<=) (apply <= args)]
+      [(>=) (apply >= args)]
+      [(cons) (apply cons args)]
+      [(car) (apply car args)]
+      [(cdr) (apply cdr args)]
+      [(list) (apply list args)]
+      [(null?) (apply null? args)]
+      [(assq) (apply assq args)]
+      [(eq?) (apply eq? args)]
+      [(equal?) (apply equal? args)]
+      [(atom?) (apply atom? args)]
+      [(length) (apply length args)]
+      [(list->vector) (apply list->vector args)]
+      [(list?) (apply list? args)]
+      [(pair?) (apply pair? args)]
+      [(procedure?) (apply procedure? args)]
+      [(vector->list) (apply vector->list args)]
+      [(vector?) (apply vector? args)]
+      [(make-vector) (apply make-vector args)]
+      [(vector-ref) (apply vector-ref args)]
+      [(vector?) (apply vector? args)]
+      [(number?) (apply number? args)]
+      [(symbol?) (apply symbol? args)]
+      [(set-car!) (apply set-car! args)]
+      [(set-cdr!) (apply set-cdr! args)]
+      [(vector-set!) (apply vector-set! args)]
+      [(display) (apply display args)]
+      [(newline) (apply newline args)]
+      [(caar) (apply caar args)]
+      [(caaar) (apply caaar args)]
+      [(cddr) (apply cddr args)]
+      [(cdddr) (apply cdddr args)]
+      [(caddr) (apply caddr args)]
+      [(caadr) (apply caadr args)]
       [else (error 'apply-prim-proc 
             "Bad primitive procedure name: ~s" 
             prim-op)])))
@@ -96,7 +130,3 @@
 
 (define eval-one-exp
   (lambda (x) (top-level-eval (parse-exp x))))
-
-
-
-

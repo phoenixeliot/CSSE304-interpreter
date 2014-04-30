@@ -17,7 +17,7 @@
       [(boolean? datum) (lit-exp datum)]
       [(string? datum) (lit-exp datum)]
       [(vector? datum) (lit-exp datum)]
-      [(equal? 'quote (1st datum)) (lit-exp datum)]
+      [(equal? 'quote (1st datum)) (lit-exp (2nd datum))]
       [(pair? datum)
         (cond
           [(equal? 'if (1st datum))
@@ -48,8 +48,8 @@
     ((not (andmap (lambda (ls) (= 2 (length ls))) (cadr datum)))
       (eopl:error 'parse-exp "declaration in ~s-expression must be a list of length 2: ~s" (car datum) datum))
     ((not (andmap (lambda (ls) (symbol? (car ls))) (cadr datum)))
-      (eopl:error 'parse-exp "vars in ~s-expression must be symbols: ~s" (car datum) datum)))
-  (else #t))
+      (eopl:error 'parse-exp "vars in ~s-expression must be symbols: ~s" (car datum) datum))
+    (else #t)))
 
 
 
