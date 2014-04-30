@@ -17,6 +17,12 @@
            (lambda () (eopl:error 'apply-env ; procedure to call if id not in env
 		          "variable not found in environment: ~s"
 			   id)))] 
+      [if-exp (condition true-body false-body)
+        (if (eval-exp condition) (eval-exp true-body) (eval-exp false-body))
+      ]
+      ;[let-exp (vars values bodies)
+      ;  (let ((next-env)))
+      ;]
       [app-exp (rator rands)
         (let ([proc-value (eval-exp rator)]
               [args (eval-rands rands)])
@@ -42,7 +48,14 @@
                    "Attempt to apply bad procedure: ~s" 
                     proc-value)])))
 
-(define *prim-proc-names* '(+ - * add1 sub1 cons =))
+(define *prim-proc-names*
+    '(+ - * / add1 sub1 zero? not = < > <= >=
+      cons car cdr list null? assq eq? equal? atom? length list->vector
+      list? pair? procedure? vector->list vector? make-vector vector-ref vector?
+      number? symbol? set-car! set-cdr! vector-set! display newline
+      caar caaar
+      cddr cdddr
+      caddr caadr ))
 
 (define init-env         ; for now, our initial global environment only contains 
   (extend-env            ; procedure names.  Recall that an environment associates
@@ -56,8 +69,12 @@
 
 (define apply-prim-proc
   (lambda (prim-proc args)
+    ;(if (memv prim-proc *prim-proc-names*)
+    ;    (apply (prim-proc) args)
+    ;    'error)))
+
     (case prim-proc
-      [(+) (+ (1st args) (2nd args))]
+      [(+) (apply + args)]
       [(-) (- (1st args) (2nd args))]
       [(*) (* (1st args) (2nd args))]
       [(add1) (+ (1st args) 1)]
@@ -79,12 +96,6 @@
 
 (define eval-one-exp
   (lambda (x) (top-level-eval (parse-exp x))))
-
-
-
-
-
-
 
 
 
