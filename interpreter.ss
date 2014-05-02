@@ -1,35 +1,47 @@
 ;; top-level-eval evaluates a form in the global environment
+(define global-env init-env)
+
 (define (top-level-eval form)
   ;; later we may add things that are not expressions.
-  (eval-exp form))
+  (eval-exp form (empty-env)))
 
 ;; eval-exp is the main component of the interpreter
-(define (eval-exp exp)
-  (cases expression exp
-         [lit-exp (datum) datum]
-         [var-exp (id)
-                  (apply-env init-env id ; look up its value.
-                             (lambda (x) x) ; procedure to call if id is in the environment 
-                             (lambda () (eopl:error 'apply-env ; procedure to call if id not in env
-                                               "variable not found in environment: ~s"
-                                               id)))] 
-         [if-exp (condition true-body false-body)
-                 (if (eval-exp condition)
-                     (eval-exp true-body)
-                     (eval-exp false-body))]
-         ;;[let-exp (vars values bodies)
-         ;;  (let ((next-env)))
-         ;;]
-         [app-exp (rator rands)
-                  (let ([proc-value (eval-exp rator)]
-                        [args (eval-rands rands)])
-                    (apply-proc proc-value args))]
-         [else
-          (eopl:error 'eval-exp "Bad abstract syntax: ~a" exp)]))
+(define (eval-exp exp env)
+  (let ([identity-proc (lambda (x) x)])
+    (cases expression exp
+           [lit-exp (datum) datum]
+           [var-exp (id)
+                    (apply-env env id 
+                               identity-proc ; procedure to call if id is in the environment 
+                               (lambda ()  ; procedure to call if id not in env
+                                 (apply-env global-env id identity-proc
+                                            (lambda () (eopl:error 'apply-env 
+                                                              "variable not found in environment: ~s"
+                                                              id)))))] 
+           [if-exp (condition true-body false-body)
+                   (if (eval-exp condition env)
+                       (eval-exp true-body env)
+                       (eval-exp false-body env))]
+           [let-exp (vars values bodies)
+                    (let ([extended-env (extend-env
+                                         vars ; symbols
+                                         (map (lambda (e) (eval-exp e env)) values) ; values
+                                         env)]) ;; current environment
+                      (let loop ([bodies bodies])
+                        (if (null? (cdr bodies))
+                            (eval-exp (car bodies) extended-env)
+                            (begin (eval-exp (car bodies) extended-env)
+                                   (loop (cdr bodies))))))]
+           [app-exp (rator rands)
+                    (let ([proc-value (eval-exp rator env)]
+                          [args (eval-rands rands env)])
+                      (apply-proc proc-value args))]
+           [else
+            (eopl:error 'eval-exp "Bad abstract syntax: ~a" exp)])))
 
 ;; evaluate the list of operands, putting results into a list
-(define (eval-rands rands)
-  (map eval-exp rands))
+(define (eval-rands rands env)
+  (map (lambda (e) (eval-exp e env)) rands))
 
 ;;  Apply a procedure to its arguments.
 ;;  At this point, we only have primitive procedures.  
