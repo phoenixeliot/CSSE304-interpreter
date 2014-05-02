@@ -5,6 +5,24 @@
 (define 3rd caddr)
 (define 4rd caddr)
 
+(define (parse-lambda-args p)
+  (cond
+   [(symbol? p)
+    (values #f p)]
+   [(null? p)
+    (values p #f)]
+   [else
+    (let ([res (let loop ([p p]
+                          [res '()])
+                 (cond
+                  [(symbol? (cdr p))
+                   (list (cons (car p) res) (cdr p))]
+                  [(null? (cdr p))
+                   (list (cons (car p) res) #f)]
+                  [else
+                   (loop (cdr p) (cons (car p) res))]))])
+      (values (reverse (car res)) (cadr res)))]))
+
 (define (parse-exp datum)
   (cond
    [(symbol? datum) (var-exp datum)]
@@ -16,15 +34,22 @@
    [(equal? 'quote (1st datum)) (lit-exp (2nd datum))]
    [(pair? datum)
     (cond
-     [(equal? 'if (1st datum))
-                                        ;(valid-if-exp? datum) ;this will error if not valid
+     [(eqv? 'lambda (1st datum))
+      ;;(valid-lambda? datum)
+      (let-values ([(re-params op-params)
+                    (parse-lambda-args (2nd datum))])
+        (lambda-exp re-params
+                    op-params
+                    (map parse-exp (cddr datum))))]
+     [(eqv? 'if (1st datum))
+      ;;(valid-if? datum) ;this will error if not valid
       (if (equal? 3 (length datum))
           (if-exp
            (parse-exp (2nd datum)) (parse-exp (3rd datum)) (parse-exp (void))) ; One armed if
           (apply if-exp (map parse-exp (cdr datum)))) ;normal if
       ]
-     [(equal? 'let (1st datum))
-      (valid-let-exp? datum) ;; error checking
+     [(eqv? 'let (1st datum))
+      (valid-let? datum) ;; error checking
       (let-exp 
        (map 1st (2nd datum)) ; don't parse the variable names, following 'lambda style
        (map parse-exp (map 2nd (2nd datum))) ; values of variable names
@@ -37,7 +62,7 @@
    [else (eopl:error 'parse-exp "bad expression: ~s" datum)]))
 
 ;; Error checking functions
-(define (valid-let-exp? datum)
+(define (valid-let? datum)
   (cond
    ((< (length datum) 3)
     (eopl:error 'parse-exp "~s expression: incorrect length: ~s" (car datum) datum))

@@ -17,7 +17,9 @@
                                  (apply-env global-env id identity-proc
                                             (lambda () (eopl:error 'apply-env 
                                                               "variable not found in environment: ~s"
-                                                              id)))))] 
+                                                              id)))))]
+           [lambda-exp (re-params op-params bodies)
+                  (closure re-params op-params bodies env)]
            [if-exp (condition true-body false-body)
                    (if (eval-exp condition env)
                        (eval-exp true-body env)
@@ -27,11 +29,7 @@
                                          vars ; symbols
                                          (map (lambda (e) (eval-exp e env)) values) ; values
                                          env)]) ;; current environment
-                      (let loop ([bodies bodies])
-                        (if (null? (cdr bodies))
-                            (eval-exp (car bodies) extended-env)
-                            (begin (eval-exp (car bodies) extended-env)
-                                   (loop (cdr bodies))))))]
+                      (for-each (lambda (e) (eval-exp e extended-env)) bodies))]
            [app-exp (rator rands)
                     (let ([proc-value (eval-exp rator env)]
                           [args (eval-rands rands env)])
@@ -49,6 +47,12 @@
 (define (apply-proc proc-value args)
   (cases proc-val proc-value
          [prim-proc (op) (apply-prim-proc op args)]
+         [closure (re-params op-params bodies env)
+                  (let ([extended-env (extend-env
+                                       re-params ; symbols TODO: add optional case
+                                       args ; values
+                                       env)]) ;; current environment
+                    (for-each (lambda (e) (eval-exp e extended-env)) bodies))]
                                         ; You will add other cases
          [else (error 'apply-proc
                       "Attempt to apply bad procedure: ~s" 
