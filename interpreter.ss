@@ -44,12 +44,16 @@
 
 (define *prim-proc-names*
   '(+ - * / add1 sub1 zero? not = < > <= >=
-      cons car cdr list null? assq eq? equal? atom? length list->vector
+      cons list null? assq eq? equal? atom? length list->vector
       list? pair? procedure? vector->list vector? make-vector vector-ref vector?
       number? symbol? set-car! set-cdr! vector-set! display newline
-      caar caaar
-      cddr cdddr
-      caddr caadr ))
+      car  cdr
+      caar cddr
+      cadr cdar
+      caaar cdddr
+      caadr cddar
+      cadar cdadr
+      cdaar caddr))
 
 (define init-env         ; for now, our initial global environment only contains 
   (extend-env            ; procedure names.  Recall that an environment associates
@@ -76,8 +80,6 @@
     [(<=) (apply <= args)]
     [(>=) (apply >= args)]
     [(cons) (apply cons args)]
-    [(car) (apply car args)]
-    [(cdr) (apply cdr args)]
     [(list) (apply list args)]
     [(null?) (apply null? args)]
     [(assq) (apply assq args)]
@@ -101,12 +103,20 @@
     [(vector-set!) (apply vector-set! args)]
     [(display) (apply display args)]
     [(newline) (apply newline args)]
-    [(caar) (apply caar args)]
-    [(caaar) (apply caaar args)]
-    [(cddr) (apply cddr args)]
-    [(cdddr) (apply cdddr args)]
-    [(caddr) (apply caddr args)]
-    [(caadr) (apply caadr args)]
+    [(car) (apply car args)] 
+    [(cdr) (apply cdr args)] 
+    [(caar) (apply caar args)] 
+    [(cddr) (apply cddr args)] 
+    [(cadr) (apply cadr args)] 
+    [(cdar) (apply cdar args)] 
+    [(caaar) (apply caaar args)] 
+    [(cdddr) (apply cdddr args)] 
+    [(caadr) (apply caadr args)] 
+    [(cddar) (apply cddar args)] 
+    [(cadar) (apply cadar args)] 
+    [(cdadr) (apply cdadr args)] 
+    [(cdaar) (apply cdaar args)] 
+    [(caddr) (apply caddr args)] 
     [else (error 'apply-prim-proc 
                  "Bad primitive procedure name: ~s" 
                  prim-op)]))
