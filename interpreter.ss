@@ -1,6 +1,4 @@
 ;; top-level-eval evaluates a form in the global environment
-(define global-env init-env)
-
 (define (top-level-eval form)
   ;; later we may add things that are not expressions.
   (eval-exp form (empty-env)))
@@ -63,20 +61,17 @@
       cons list null? assq eq? equal? atom? length list->vector
       list? pair? procedure? vector->list vector? make-vector vector-ref vector?
       number? symbol? set-car! set-cdr! vector-set! display newline
-      car  cdr
-      caar cddr
-      cadr cdar
-      caaar cdddr
-      caadr cddar
-      cadar cdadr
-      cdaar caddr))
+      car  cdr caar cddr cadr cdar caaar cdddr caadr cddar cadar cdadr cdaar caddr))
 
+;; Initial environment
 (define init-env         ; for now, our initial global environment only contains 
   (extend-env            ; procedure names.  Recall that an environment associates
    *prim-proc-names*   ;  a value (not an expression) with an identifier.
    (map prim-proc      
         *prim-proc-names*)
    (empty-env)))
+
+(define global-env init-env)
 
 ;; Usually an interpreter must define each 
 ;; built-in procedure individually.  We are "cheating" a little bit.
