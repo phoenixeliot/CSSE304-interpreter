@@ -142,7 +142,7 @@
 	      (+ a a))]) 
      (+ a a))))
 (eval-one-exp ' 
- (let ([a '(3 4)]) 
+ (let ([a (list 3 4)]) 
    (set-car! a 2) 
    (set-cdr! a (cadr a)) 
    a))
@@ -153,10 +153,6 @@
     (let ([correct '(
 		     6
 		     12
-		     a
-		     (b c)
-		     (9 2 1)
-		     two
 		     154
 		     720
 		     (#t #t #f)
@@ -167,33 +163,23 @@
 			     5))
 	     (eval-one-exp '((lambda (x) (+ 1 x) 
 				     (+ 2 (* 2 x))) 5))
-	     (eval-one-exp '((lambda x (car x)) 
-			     'a 'b 'c))
-	     (eval-one-exp '((lambda x (car x) (cdr x)) 
-			     'a 'b 'c))
-	     (eval-one-exp '((lambda (x y . z) 
-			       (cons (+ x y) (cdr z))) 
-			     5 4 3 2 1))
-	     (eval-one-exp ' ((lambda (x y . z) 
-				(if (> x y) (car z) (cdr z)) (cadr z)) 
-			      5 4 'three 'two 'one))
 	     (eval-one-exp ' 
 	      ((lambda (a b) 
-		 (let ([a (+ a b)] [b (- a b)]) 
-		   (let ([f (lambda (a) (+ a b))]) 
-		     (f (+ 3 a b))))) 
+					(let ([a (+ a b)] [b (- a b)]) 
+							(let ([f (lambda (a) (+ a b))]) 
+									(f (+ 3 a b))))) 
 	       56 17))
 	     (eval-one-exp ' 
 	      (((lambda (f) 
-		  ((lambda (x) 
-		     (f (lambda (y) 
-			  ((x x) y)))) 
-		   (lambda (x) 
-		     (f (lambda (y) 
-			  ((x x) y)))))) 
-		(lambda (g) 
-		  (lambda (n) 
-		    (if (zero? n) 1 (* n (g (- n 1))))))) 
+						((lambda (x) 
+							f (lambda (y) 
+									((x x) y)))) 
+						(lambda (x) 
+							(f (lambda (y) 
+									((x x) y)))))) 
+				(lambda (g) 
+					(lambda (n) 
+							(if (zero? n) 1 (* n (g (- n 1))))))) 
 	       6))
 	     (eval-one-exp ' 
 	      (let ([Y (lambda (f) 
