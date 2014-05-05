@@ -99,7 +99,7 @@
 (define init-env         ; for now, our initial global environment only contains 
   (extend-env            ; procedure names.  Recall that an environment associates
    *prim-proc-names*   ;  a value (not an expression) with an identifier.
-   (map prim-proc      
+   (map prim-proc
         *prim-proc-names*)
    (empty-env)))
 
@@ -114,9 +114,9 @@
     [(-) (apply - args)]
     [(*) (apply * args)]
     [(/) (apply / args)]
-    [(add1) (apply add1 args)]
-    [(sub1) (apply sub1 args)]
-    [(zero?) (apply zero? args)]
+    [(add1) (+ (car args) 1)]
+    [(sub1) (- (car args) 1)]
+    [(zero?) (= (car args) 0)]
     [(not) (apply not args)]
     [(=) (apply = args)]
     [(<) (apply < args)]
@@ -124,7 +124,7 @@
     [(<=) (apply <= args)]
     [(>=) (apply >= args)]
     [(cons) (apply cons args)]
-    [(list) (apply list args)]
+    [(list) args]                     ;this one is my favorite
     [(null?) (apply null? args)]
     [(assq) (apply assq args)]
     [(eq?) (apply eq? args)]
@@ -134,7 +134,7 @@
     [(list->vector) (apply list->vector args)]
     [(list?) (apply list? args)]
     [(pair?) (apply pair? args)]
-    [(procedure?) (apply procedure? args)]
+    [(procedure?) (proc-val? (car args))]
     [(vector->list) (apply vector->list args)]
     [(vector?) (apply vector? args)]
     [(make-vector) (apply make-vector args)]
