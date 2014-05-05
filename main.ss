@@ -12,12 +12,12 @@
 
 (define l load-all) ; even easier!
 
-;; Code to run repl
+;; Function to run repl
 (define run (lambda () (begin
                     (load-all)
                     (rep))))
 
-;; Code to run tests
+;; Function to run tests
 (define test (lambda () (begin
                      (load-all)
                      (load "A15-test-code.ss")
