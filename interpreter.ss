@@ -132,12 +132,38 @@
                  "Bad primitive procedure name: ~s" 
                  prim-op)]))
 
+;; Check if datum is of define datatype
+(define (data-type? type datum)
+  (cond
+   [(expression? datum)
+    (cases expression datum
+           [lit-exp (datum) (eq? 'lit type)]
+           [var-exp (id) (eq? 'var type)]
+           [lambda-exp (re-params op-params bodies) (eq? 'lambda type)]
+           [if-exp (condition true-body false-body) (eq? 'if type)]
+           [let-exp (vars values bodies) (eq? 'let type)]
+           [app-exp (rator rands) (eq? 'app type)]
+           [else
+            #f])]
+   [(proc-val? datum)
+    (cases proc-val datum
+           [prim-proc (name) (eq? 'prim-proc type)]
+           [closure (re-params op-params bodies env) (eq? 'closure type)]
+           [else
+            #f])]
+   [else
+    #f]))
+
 ;; "read-eval-print" loop.
 (define (rep)
   (display "--> ")
   ;; notice that we don't save changes to the environment...
   (let ([answer (top-level-eval (parse-exp (read)))])
-    ;; TODO: are there answers that should display differently?
+    (cond
+     [(data-type? 'closure answer)
+      (set! answer '<interpreter-procedure>)]
+     [(data-type? 'prim-proc answer)
+      (set! answer '<primative-procedure>)])
     (eopl:pretty-print answer) (newline)
     (rep)))  ; tail-recursive, so stack doesn't grow.
 
