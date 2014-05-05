@@ -19,7 +19,7 @@
   [lit-exp        ; "Normal" data.  Did I leave out any types?
    (datum lit?)]
   [lambda-exp
-   (re-params (lambda (p) (or (eq? #f p) (andmap symbol? p)))) ;; required params
+   (re-params (list-of symbol?)) ;; required params
    (op-params (lambda (p) (or (eq? #f p) (symbol? p)))) ;; optional params
    (bodies (list-of expression?))]
   [if-exp
