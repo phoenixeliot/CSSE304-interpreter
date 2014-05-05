@@ -8,7 +8,7 @@
 (define (parse-lambda-args p)
   (cond
    [(symbol? p)
-    (values #f p)]
+    (values '() p)]
    [(null? p)
     (values p #f)]
    [else

@@ -48,18 +48,17 @@
             (cond
               ((and (not op-params) (> (length args) (length re-params)))
                 (error 'apply-proc "Too many arguments in application: ~s"))
-              ((and re-params (< (length args) (length re-params)))
+              ((< (length args) (length re-params))
                 (error 'apply-proc "Too few arguments in application: ~s"))
-              (else (let* ([all-params (filter (lambda (v) v)
-                                          (append re-params (list op-params)))]
-                                           ;(filter (lambda (v) v) (list op-params)))]
+              (else (let* ([all-params (append re-params (filter (lambda (v) v) (list op-params)))]
                            [extended-env (extend-env
                                          all-params ; symbols TODO: add optional case
                                          (encapsulate-extra-args re-params op-params args) ; values
                                          env)]) ;; current environment
                       (for-each (lambda (e) (eval-exp e extended-env)) bodies)))
               )]
-                                          ; You will add other cases
+        
+         ; You will add other cases
          [else (error 'apply-proc
                       "Attempt to apply bad procedure: ~s" 
                       proc-value)]))
