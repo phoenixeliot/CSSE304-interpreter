@@ -16,3 +16,5 @@
 (define run (lambda () (begin
                      (load "main.ss")
                      (rep))))
+
+(load-all)
