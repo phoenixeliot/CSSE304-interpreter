@@ -13,6 +13,12 @@
 (define l load-all) ; even easier!
 
 ;; Code to run repl
-'(define run (lambda () (begin
-                     (load "main.ss")
-                     (rep))))
+(define run (lambda () (begin
+                    (load-all)
+                    (rep))))
+
+;; Code to run tests
+(define test (lambda () (begin
+                     (load-all)
+                     (load "A15-test-code.ss")
+                     (r))))
