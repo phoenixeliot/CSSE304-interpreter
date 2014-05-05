@@ -13,6 +13,6 @@
 (define l load-all) ; even easier!
 
 ;; Code to run repl
-'(define run (lambda () (begin
+(define run (lambda () (begin
                      (load "main.ss")
                      (rep))))

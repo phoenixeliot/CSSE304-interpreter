@@ -1,6 +1,3 @@
-;; top-level-eval evaluates a form in the global environment
-(define global-env init-env)
-
 (define (top-level-eval form)
   ;; later we may add things that are not expressions.
   (eval-exp form (empty-env)))
@@ -48,15 +45,44 @@
   (cases proc-val proc-value
          [prim-proc (op) (apply-prim-proc op args)]
          [closure (re-params op-params bodies env)
-                  (let ([extended-env (extend-env
-                                       re-params ; symbols TODO: add optional case
-                                       args ; values
-                                       env)]) ;; current environment
-                    (for-each (lambda (e) (eval-exp e extended-env)) bodies))]
-                                        ; You will add other cases
+            (cond
+              ((and (not op-params) (> (length args) (length re-params)))
+                (error 'apply-proc "Too many arguments in application: ~s"))
+              ((and re-params (< (length args) (length re-params)))
+                (error 'apply-proc "Too few arguments in application: ~s"))
+              (else (let* ([all-params (filter (lambda (v) v)
+                                          (append re-params (list op-params)))]
+                                           ;(filter (lambda (v) v) (list op-params)))]
+                           [extended-env (extend-env
+                                         all-params ; symbols TODO: add optional case
+                                         (encapsulate-extra-args re-params op-params args) ; values
+                                         env)]) ;; current environment
+                      (for-each (lambda (e) (eval-exp e extended-env)) bodies)))
+              )]
+                                          ; You will add other cases
          [else (error 'apply-proc
                       "Attempt to apply bad procedure: ~s" 
                       proc-value)]))
+
+;This puts the last items from an argument list in their own list
+;ex:
+;(encapsulate-extra-args '(a b c) 'd '(1 2 3 4 5))
+;  => (1 2 3 (4 5))
+(define (encapsulate-extra-args re-params op-params args)
+  (cond
+    ((not op-params) args) ;don't encapsulate at all
+    ((null? re-params) (list args)) ;everything leftover gets encapsulated
+    (else (cons (car args)
+      (encapsulate-extra-args (cdr re-params) op-params (cdr args))))))
+
+
+
+  ;(cond ((null? params) '()) ;there are no parameters to this procedure
+  ;      ((null? args) (list '())) ;there are no extra parameters to encapsulate
+  ;      ((and (null? (cdr params)) (null? (cdr args))) (begin (display "test") args)) ;if the lists line up, don't encapsulate
+  ;      ((null? (cdr params))
+  ;        (list args)) ;base case otherwise
+  ;      (else (cons (car args) (encapsulate-extra-args (cdr params) (cdr args))))))
 
 (define *prim-proc-names*
   '(+ - * / add1 sub1 zero? not = < > <= >=
@@ -77,6 +103,9 @@
    (map prim-proc      
         *prim-proc-names*)
    (empty-env)))
+
+;; top-level-eval evaluates a form in the global environment
+(define global-env init-env)
 
 ;; Usually an interpreter must define each 
 ;; built-in procedure individually.  We are "cheating" a little bit.
