@@ -17,8 +17,16 @@
                     (load-all)
                     (rep))))
 
+;; Function to run debug repl
+(define run-debug (lambda () (begin
+                          (load-all)
+                          (rep-debug))))
+
 ;; Function to run tests
 (define test (lambda () (begin
                      (load-all)
                      (load "A15-test-code.ss")
-                     (r))))
+                     (r)
+                     (load "A16-test-code.ss")
+                     (r)
+                     )))

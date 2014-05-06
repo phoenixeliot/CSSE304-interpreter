@@ -85,8 +85,8 @@
   ;      (else (cons (car args) (encapsulate-extra-args (cdr params) (cdr args))))))
 
 (define *prim-proc-names*
-  '(+ - * / add1 sub1 zero? not = < > <= >=
-      cons list null? assq eq? equal? atom? length list->vector
+  '(+ - * / add1 sub1 zero? not = < > <= >= apply map
+      cons list vector null? assq eq? equal? atom? length list->vector
       list? pair? procedure? vector->list vector? make-vector vector-ref vector?
       number? symbol? set-car! set-cdr! vector-set! display newline
       car  cdr caar cddr cadr cdar caaar cdddr caadr cddar cadar cdadr cdaar caddr))
@@ -118,8 +118,11 @@
     [(>) (apply > args)]
     [(<=) (apply <= args)]
     [(>=) (apply >= args)]
+    [(apply) (apply apply args)] ;; TODO
+    [(map) (apply map args)] ;; TODO
     [(cons) (apply cons args)]
     [(list) args]                     ;this one is my favorite
+    [(vector) (apply vector args)]
     [(null?) (apply null? args)]
     [(assq) (apply assq args)]
     [(eq?) (apply eq? args)]
@@ -192,6 +195,14 @@
       (set! answer '<interpreter-procedure>)]
      [(data-type? 'prim-proc answer)
       (set! answer '<primative-procedure>)])
+    (eopl:pretty-print answer) (newline)
+    (rep)))  ; tail-recursive, so stack doesn't grow.
+
+;; "debug read-eval-print" loop.
+(define (rep-debug)
+  (display "--> ")
+  ;; notice that we don't save changes to the environment...
+  (let ([answer (top-level-eval (parse-exp (read)))])
     (eopl:pretty-print answer) (newline)
     (rep)))  ; tail-recursive, so stack doesn't grow.
 
