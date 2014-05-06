@@ -8,15 +8,10 @@
      (lambda (pred) (pred x))
      (list number? vector? boolean? symbol? string? pair? null? void?))))
 
-;(define (optional pred?)
-  ;I might do this later
-; )
-;(optional (list-of symbol))
-
 (define-datatype expression expression?
   [var-exp        ; variable references
    (id symbol?)]
-  [lit-exp        ; "Normal" data.  Did I leave out any types?
+  [lit-exp        ; "Normal" data
    (datum lit?)]
   [lambda-exp
    (re-params (list-of symbol?)) ;; required params

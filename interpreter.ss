@@ -17,7 +17,7 @@
                                                               "variable not found in environment: ~s"
                                                               id)))))]
            [lambda-exp (re-params op-params bodies)
-                  (closure re-params op-params bodies env)]
+                       (closure re-params op-params bodies env)]
            [if-exp (condition true-body false-body)
                    (if (eval-exp condition env)
                        (eval-exp true-body env)
@@ -44,33 +44,33 @@
   (cases proc-val proc-value
          [prim-proc (op) (apply-prim-proc op args)]
          [closure (re-params op-params bodies env)
-            (cond
-             ((and (not op-params) (> (length args) (length re-params)))
-              (error 'apply-proc "Too many arguments in application: ~s"))
-              ((< (length args) (length re-params))
-                (error 'apply-proc "Too few arguments in application: ~s"))
-              (else (let* ([all-params (append re-params (filter (lambda (v) v) (list op-params)))]
-                           [extended-env (extend-env
-                                         all-params ; symbols
-                                         (encapsulate-extra-args re-params op-params args) ; values
-                                         env)]) ; current environment
-                      (for-each (lambda (e) (eval-exp e extended-env)) bodies)))
-              )]
-         ; You will add other cases
+                  (cond
+                   [(and (not op-params) (> (length args) (length re-params)))
+                    (error 'apply-proc "Too many arguments in application: ~s")]
+                   [(< (length args) (length re-params))
+                    (error 'apply-proc "Too few arguments in application: ~s")]
+                   [else (let* ([all-params (append re-params (filter (lambda (v) v) (list op-params)))]
+                                [extended-env (extend-env
+                                               all-params ; symbols
+                                               (encapsulate-extra-args re-params op-params args) ; values
+                                               env)]) ; current environment
+                           (for-each (lambda (e) (eval-exp e extended-env)) bodies))]
+                   )]
+                                        ; You will add other cases
          [else (error 'apply-proc
                       "Attempt to apply bad procedure: ~s" 
                       proc-value)]))
 
-;This puts the last items from an argument list in their own list
-;ex:
-;(encapsulate-extra-args '(a b c) 'd '(1 2 3 4 5))
-;  => (1 2 3 (4 5))
+;;This puts the last items from an argument list in their own list
+;;ex:
+;;(encapsulate-extra-args '(a b c) 'd '(1 2 3 4 5))
+;;  => (1 2 3 (4 5))
 (define (encapsulate-extra-args re-params op-params args)
   (cond
-    ((not op-params) args) ;don't encapsulate at all
-    ((null? re-params) (list args)) ;everything leftover gets encapsulated
-    (else (cons (car args)
-      (encapsulate-extra-args (cdr re-params) op-params (cdr args))))))
+   [(not op-params) args] ;don't encapsulate at all
+   [(null? re-params) (list args)] ;everything leftover gets encapsulated
+   [else (cons (car args)
+               (encapsulate-extra-args (cdr re-params) op-params (cdr args)))]))
 
 (define *prim-proc-names*
   '(+ - * / add1 sub1 zero? not = < > <= >= apply map
@@ -153,11 +153,9 @@
     [(cdadr) (apply cdadr args)] 
     [(cdaar) (apply cdaar args)] 
     [(caddr) (apply caddr args)] 
-    [else (error 'apply-prim-proc 
-                 "Bad primitive procedure name: ~s" 
-                 prim-proc)]))
+    [else (error 'apply-prim-proc "Bad primitive procedure name: ~s" prim-proc)]))
 
-;; Check if datum is of define datatype
+;; Check if datum is of a define datatype
 (define (data-type? type datum)
   (cond
    [(expression? datum)
@@ -192,7 +190,7 @@
     (eopl:pretty-print answer) (newline)
     (rep)))  ; tail-recursive, so stack doesn't grow.
 
-;; "debug read-eval-print" loop.
+;; "debug read-eval-print" loop does not sanatize values
 (define (rep-debug)
   (display "--> ")
   ;; notice that we don't save changes to the environment...

@@ -7,13 +7,10 @@
 
 (define (parse-lambda-args p)
   (cond
-   [(symbol? p)
-    (values '() p)]
-   [(null? p)
-    (values p #f)]
+   [(symbol? p) (values '() p)] ; No re-params
+   [(null? p) (values p #f)] ; No op-parmas or re-params
    [else
-    (let ([res (let loop ([p p]
-                          [res '()])
+    (let ([res (let loop ([p p] [res '()])
                  (cond
                   [(symbol? (cdr p))
                    (list (cons (car p) res) (cdr p))]
@@ -40,9 +37,10 @@
                     (parse-lambda-args (2nd datum))])
         (lambda-exp re-params
                     op-params
-                    (map parse-exp (cddr datum))))]
+                    (map parse-exp (cddr datum))))
+      ]
      [(eqv? 'if (1st datum))
-      ;;(valid-if? datum) ;this will error if not valid
+      ;;(valid-if? datum)
       (if (equal? 3 (length datum))
           (if-exp
            (parse-exp (2nd datum)) (parse-exp (3rd datum)) (parse-exp (void))) ; One armed if
