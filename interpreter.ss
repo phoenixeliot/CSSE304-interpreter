@@ -40,25 +40,22 @@
   (map (lambda (e) (eval-exp e env)) rands))
 
 ;;  Apply a procedure to its arguments.
-;;  At this point, we only have primitive procedures.  
-;;  User-defined procedures will be added later.
 (define (apply-proc proc-value args)
   (cases proc-val proc-value
          [prim-proc (op) (apply-prim-proc op args)]
          [closure (re-params op-params bodies env)
             (cond
-              ((and (not op-params) (> (length args) (length re-params)))
-                (error 'apply-proc "Too many arguments in application: ~s"))
+             ((and (not op-params) (> (length args) (length re-params)))
+              (error 'apply-proc "Too many arguments in application: ~s"))
               ((< (length args) (length re-params))
                 (error 'apply-proc "Too few arguments in application: ~s"))
               (else (let* ([all-params (append re-params (filter (lambda (v) v) (list op-params)))]
                            [extended-env (extend-env
-                                         all-params ; symbols TODO: add optional case
+                                         all-params ; symbols
                                          (encapsulate-extra-args re-params op-params args) ; values
-                                         env)]) ;; current environment
+                                         env)]) ; current environment
                       (for-each (lambda (e) (eval-exp e extended-env)) bodies)))
               )]
-        
          ; You will add other cases
          [else (error 'apply-proc
                       "Attempt to apply bad procedure: ~s" 
@@ -74,15 +71,6 @@
     ((null? re-params) (list args)) ;everything leftover gets encapsulated
     (else (cons (car args)
       (encapsulate-extra-args (cdr re-params) op-params (cdr args))))))
-
-
-
-  ;(cond ((null? params) '()) ;there are no parameters to this procedure
-  ;      ((null? args) (list '())) ;there are no extra parameters to encapsulate
-  ;      ((and (null? (cdr params)) (null? (cdr args))) (begin (display "test") args)) ;if the lists line up, don't encapsulate
-  ;      ((null? (cdr params))
-  ;        (list args)) ;base case otherwise
-  ;      (else (cons (car args) (encapsulate-extra-args (cdr params) (cdr args))))))
 
 (define *prim-proc-names*
   '(+ - * / add1 sub1 zero? not = < > <= >= apply map
@@ -101,6 +89,12 @@
 
 (define global-env init-env)
 
+;; Procedure used for map
+(define (map-proc proc ls)
+  (if (null? ls)
+      '()
+      (cons (apply-proc proc (list (car ls))) (map-proc proc (cdr ls)))))
+
 ;; Usually an interpreter must define each 
 ;; built-in procedure individually.  We are "cheating" a little bit.
 (define (apply-prim-proc prim-proc args)
@@ -118,8 +112,8 @@
     [(>) (apply > args)]
     [(<=) (apply <= args)]
     [(>=) (apply >= args)]
-    [(apply) (apply apply args)] ;; TODO
-    [(map) (apply map args)] ;; TODO
+    [(apply) (apply-proc (1st args) (2nd args))] 
+    [(map) (map-proc (1st args) (2nd args))]
     [(cons) (apply cons args)]
     [(list) args]                     ;this one is my favorite
     [(vector) (apply vector args)]
@@ -161,7 +155,7 @@
     [(caddr) (apply caddr args)] 
     [else (error 'apply-prim-proc 
                  "Bad primitive procedure name: ~s" 
-                 prim-op)]))
+                 prim-proc)]))
 
 ;; Check if datum is of define datatype
 (define (data-type? type datum)

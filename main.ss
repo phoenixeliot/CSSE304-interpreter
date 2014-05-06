@@ -24,9 +24,11 @@
 
 ;; Function to run tests
 (define test (lambda () (begin
+                     (display "A15 TESTS\n") 
                      (load-all)
                      (load "A15-test-code.ss")
                      (r)
+                     (display "A16 TESTS\n")
                      (load "A16-test-code.ss")
                      (r)
                      )))
