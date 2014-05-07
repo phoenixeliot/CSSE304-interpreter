@@ -1,3 +1,7 @@
+(define 1st car)
+(define 2nd cadr)
+(define 3rd caddr)
+
 ;; top-level-eval evaluates a form in the global environment
 (define (top-level-eval form)
   ;; later we may add things that are not expressions.
@@ -74,7 +78,7 @@
       list? pair? procedure? vector->list vector? make-vector vector-ref vector?
       number? symbol? set-car! set-cdr! vector-set! display newline
       car  cdr caar cddr cadr cdar caaar cdddr caadr cddar cadar cdadr cdaar caddr
-      void))
+      void exit))
 
 ;; Initial environment
 (define init-env         ; for now, our initial global environment only contains 
@@ -151,6 +155,7 @@
     [(cdaar) (apply cdaar args)] 
     [(caddr) (apply caddr args)]
     [(void) (void)]
+    [(exit) (exit)]
     [else (error 'apply-prim-proc "Bad primitive procedure name: ~s" prim-proc)]))
 
 ;; Check if datum is of a define datatype

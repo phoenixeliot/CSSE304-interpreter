@@ -1,24 +1,23 @@
-;; This is a parser for simple Scheme expressions, such as those in EOPL, 3.1 thru 3.3.
-;; Procedures to make the parser a little bit saner.
 (define 1st car)
 (define 2nd cadr)
 (define 3rd caddr)
-(define 4rd caddr)
 
+;; This is a parser for simple Scheme expressions, such as those in EOPL, 3.1 thru 3.3.
+;; Procedures to make the parser a little bit saner.
 (define (parse-lambda-args p)
   (cond
-   [(symbol? p) (values '() p)] ; No re-params
-   [(null? p) (values p #f)] ; No op-parmas or re-params
-   [else
-    (let ([res (let loop ([p p] [res '()])
-                 (cond
-                  [(symbol? (cdr p))
-                   (list (cons (car p) res) (cdr p))]
-                  [(null? (cdr p))
-                   (list (cons (car p) res) #f)]
-                  [else
-                   (loop (cdr p) (cons (car p) res))]))])
-      (values (reverse (car res)) (cadr res)))]))
+    [(symbol? p) (values '() p)] ; No re-params
+    [(null? p) (values p #f)] ; No op-parmas or re-params
+    [else
+      (let ([res (let loop ([p p] [res '()])
+                    (cond
+                      [(symbol? (cdr p))
+                        (list (cons (car p) res) (cdr p))]
+                      [(null? (cdr p))
+                        (list (cons (car p) res) #f)]
+                      [else
+                        (loop (cdr p) (cons (car p) res))]))])
+           (values (reverse (car res)) (cadr res)))]))
 
 (define (parse-exp datum)
   (cond
@@ -56,6 +55,10 @@
         [(eqv? 'begin (1st datum))
           ;(valid-begin? datum)
           (begin-exp (map parse-exp (cdr datum)))]
+        [(eqv? 'cond (1st datum))
+          ;(valid-cond? datum)
+          (cond-exp (map parse-exp (map 1st (cdr datum)))
+                    (map (lambda (v) (map parse-exp v)) (map cdr (cdr datum))))]
         [else ; application
           (app-exp (parse-exp (1st datum))  ; rator
                    (map parse-exp (cdr datum))) ; rand

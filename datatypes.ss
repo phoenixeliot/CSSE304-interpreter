@@ -27,6 +27,9 @@
     (bodies (list-of expression?))]
   [begin-exp
     (bodies (list-of expression?))]
+  [cond-exp
+    (conditions (list-of expression?))
+    (bodiess (list-of (list-of expression?)))]
   [app-exp        ; application
     (rator expression?)
     (rands (list-of expression?))])
