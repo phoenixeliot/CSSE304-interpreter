@@ -22,7 +22,8 @@
                    (if (eval-exp condition env)
                        (eval-exp true-body env)
                        (eval-exp false-body env))]
-           [let-exp (vars values bodies) (*eopl:error* 'eval-exp "Let-exp was not expanded properly")]
+           [let-exp (vars values bodies) (eopl:error 'eval-exp "Let-exp was not expanded properly: ~s" exp)]
+           [begin-exp (bodies) (eopl:error 'eval-exp "Begin-exp was not expanded properly")]
            [app-exp (rator rands)
                     (let ([proc-value (eval-exp rator env)]
                           [args (eval-rands rands env)])
