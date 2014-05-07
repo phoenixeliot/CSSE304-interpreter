@@ -22,12 +22,7 @@
                    (if (eval-exp condition env)
                        (eval-exp true-body env)
                        (eval-exp false-body env))]
-           [let-exp (vars values bodies)
-                    (let ([extended-env (extend-env
-                                         vars ; symbols
-                                         (map (lambda (e) (eval-exp e env)) values) ; values
-                                         env)]) ;; current environment
-                      (for-each (lambda (e) (eval-exp e extended-env)) bodies))]
+           [let-exp (vars values bodies) (*eopl:error* 'eval-exp "Let-exp was not expanded properly")]
            [app-exp (rator rands)
                     (let ([proc-value (eval-exp rator env)]
                           [args (eval-rands rands env)])
@@ -77,7 +72,8 @@
       cons list vector null? assq eq? equal? atom? length list->vector
       list? pair? procedure? vector->list vector? make-vector vector-ref vector?
       number? symbol? set-car! set-cdr! vector-set! display newline
-      car  cdr caar cddr cadr cdar caaar cdddr caadr cddar cadar cdadr cdaar caddr))
+      car  cdr caar cddr cadr cdar caaar cdddr caadr cddar cadar cdadr cdaar caddr
+      void))
 
 ;; Initial environment
 (define init-env         ; for now, our initial global environment only contains 
@@ -152,7 +148,8 @@
     [(cadar) (apply cadar args)] 
     [(cdadr) (apply cdadr args)] 
     [(cdaar) (apply cdaar args)] 
-    [(caddr) (apply caddr args)] 
+    [(caddr) (apply caddr args)]
+    [(void) (void)]
     [else (error 'apply-prim-proc "Bad primitive procedure name: ~s" prim-proc)]))
 
 ;; Check if datum is of a define datatype
@@ -181,7 +178,7 @@
 (define (rep)
   (display "--> ")
   ;; notice that we don't save changes to the environment...
-  (let ([answer (top-level-eval (parse-exp (read)))])
+  (let ([answer (top-level-eval (syntax-expand (parse-exp (read))))])
     (cond
      [(data-type? 'closure answer)
       (set! answer '<interpreter-procedure>)]
@@ -194,9 +191,19 @@
 (define (rep-debug)
   (display "--> ")
   ;; notice that we don't save changes to the environment...
-  (let ([answer (top-level-eval (parse-exp (read)))])
+  (let* ([parsed-exp (syntax-expand (parse-exp (read)))]
+         [answer (top-level-eval parsed-exp)])
+    (eopl:pretty-print parsed-exp) (newline)
     (eopl:pretty-print answer) (newline)
-    (rep)))  ; tail-recursive, so stack doesn't grow.
+    (rep-debug)))  ; tail-recursive, so stack doesn't grow.
 
 (define (eval-one-exp x)
-  (top-level-eval (parse-exp x)))
+  (top-level-eval (syntax-expand (parse-exp x))))
+
+
+
+
+
+
+
+

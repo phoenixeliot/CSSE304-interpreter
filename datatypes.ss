@@ -29,6 +29,13 @@
    (rator expression?)
    (rands (list-of expression?))])
 
+(define-datatype environment environment?
+  [empty-env-record]
+  [extended-env-record
+   (syms (list-of symbol?))
+   (vals (list-of scheme-value?))
+   (env environment?)])
+
 ;; datatype for procedures.  At first there is only one
 ;; kind of procedure, but more kinds will be added later.
 (define-datatype proc-val proc-val?
@@ -43,10 +50,3 @@
 ;; environment type definitions
 (define (scheme-value? x)
   #t)
-
-(define-datatype environment environment?
-  [empty-env-record]
-  [extended-env-record
-   (syms (list-of symbol?))
-   (vals (list-of scheme-value?))
-   (env environment?)])

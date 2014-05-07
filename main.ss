@@ -6,7 +6,8 @@
     (load "datatypes.ss")
     (load "parse.ss")
     (load "env.ss")
-    (load "interpreter.ss")))
+    (load "interpreter.ss")
+    (load "syntax-expand.ss")))
 
 (load-all)
 
@@ -24,11 +25,11 @@
 
 ;; Function to run tests
 (define test (lambda () (begin
-                     (display "A15 TESTS\n") 
+                     (display "======= A15 TESTS =======\n") 
                      (load-all)
                      (load "A15-test-code.ss")
                      (r)
-                     (display "A16 TESTS\n")
+                     (display "======= A16 TESTS =======\n")
                      (load "A16-test-code.ss")
                      (r)
                      )))
