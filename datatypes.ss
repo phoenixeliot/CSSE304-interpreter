@@ -26,13 +26,19 @@
     (values (list-of expression?))
     (bodies (list-of expression?))]
   [begin-exp
-    (bodies (list-of expression?))]
+   (bodies (list-of expression?))]
+  [and-exp
+   (conditions (list-of expression?))]
   [cond-exp
-    (conditions (list-of expression?))
-    (bodiess (list-of (list-of expression?)))]
+   (conditions (list-of expression?))
+   (bodiess (list-of (list-of expression?)))]
   [app-exp        ; application
     (rator expression?)
     (rands (list-of expression?))])
+
+;; environment type definitions
+(define (scheme-value? x)
+  #t)
 
 (define-datatype environment environment?
   [empty-env-record]
@@ -41,8 +47,7 @@
     (vals (list-of scheme-value?))
     (env environment?)])
 
-;; datatype for procedures.  At first there is only one
-;; kind of procedure, but more kinds will be added later.
+;; datatype for procedures
 (define-datatype proc-val proc-val?
   [prim-proc
     (name symbol?)]
@@ -51,7 +56,3 @@
     (op-params (lambda (p) (or (eq? #f p) (symbol? p))))
     (bodies (list-of expression?))
     (env environment?)])
-
-;; environment type definitions
-(define (scheme-value? x)
-  #t)

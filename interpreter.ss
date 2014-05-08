@@ -26,12 +26,19 @@
                    (if (eval-exp condition env)
                        (eval-exp true-body env)
                        (eval-exp false-body env))]
-           [let-exp (vars values bodies) (eopl:error 'eval-exp "Let-exp was not expanded properly: ~s" exp)]
-           [begin-exp (bodies) (eopl:error 'eval-exp "Begin-exp was not expanded properly")]
            [app-exp (rator rands)
                     (let ([proc-value (eval-exp rator env)]
                           [args (eval-rands rands env)])
                       (apply-proc proc-value args))]
+           ;; These all are no-ops
+           [and-exp (conditions)
+                    (eopl:error 'eval-exp "and-exp was not expanded properly: ~s" exp)]
+           [cond-exp (conditions bodiess)
+                     (eopl:error 'eval-exp "cond-exp was not expanded properly ~s" exp)]
+           [let-exp (vars values bodies)
+                    (eopl:error 'eval-exp "let-exp was not expanded properly: ~s" exp)]
+           [begin-exp (bodies)
+                      (eopl:error 'eval-exp "begin-exp was not expanded properly ~s" exp)]
            [else
             (eopl:error 'eval-exp "Bad abstract syntax: ~a" exp)])))
 
