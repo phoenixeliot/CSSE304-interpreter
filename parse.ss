@@ -58,6 +58,9 @@
      [(eqv? 'and (1st datum))
       ;;(valid-and? datum)
       (and-exp (map parse-exp (cdr datum)))]
+     [(eqv? 'or (1st datum))
+      ;;(valid-or? datum)
+      (or-exp (map parse-exp (cdr datum)))]
      [(eqv? 'cond (1st datum))
       ;;(valid-cond? datum)
       (cond-exp (map parse-exp (map 1st (cdr datum)))

@@ -29,6 +29,8 @@
    (bodies (list-of expression?))]
   [and-exp
    (conditions (list-of expression?))]
+  [or-exp
+   (conditions (list-of expression?))]
   [cond-exp
    (conditions (list-of expression?))
    (bodiess (list-of (list-of expression?)))]

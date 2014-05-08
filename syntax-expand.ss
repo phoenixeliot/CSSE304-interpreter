@@ -18,11 +18,30 @@
          [app-exp (rator rands) (app-exp (syntax-expand rator) (map syntax-expand rands))]
          [begin-exp (bodies) (app-exp (lambda-exp '() #f (map syntax-expand bodies)) '())]
          [and-exp (conditions)
-                  (if (null? conditions)
-                      (lit-exp #t)
-                      (if-exp (1st conditions)
-                              (syntax-expand (and-exp (cdr conditions)))
-                              (lit-exp #f)))]
+                  (cond
+                   [(null? conditions)
+                    (lit-exp #t)]
+                   [(null? (cdr conditions))
+                    (1st conditions)]
+                   [else
+                    (if-exp (1st conditions)
+                            (syntax-expand (and-exp (cdr conditions)))
+                            (lit-exp #f))])]
+         [or-exp (conditions)
+                 ;; value-name is a unique name to record the value of the current condition
+                 (let ([value-name '_:_or-temp_:_]) 
+                   (cond
+                    [(null? conditions)
+                     (lit-exp #f)]
+                    [(null? (cdr conditions))
+                     (1st conditions)]
+                    [else
+                     (syntax-expand (let-exp
+                                     (list value-name)
+                                     (list (1st conditions))
+                                     (list (if-exp (var-exp value-name)
+                                                   (var-exp value-name)
+                                                   (or-exp (cdr conditions))))))]))]
          [cond-exp (conditions bodiess) ;list of bodies
                    (if (null? conditions)
                        (app-exp (var-exp 'void) '())

@@ -30,9 +30,11 @@
                     (let ([proc-value (eval-exp rator env)]
                           [args (eval-rands rands env)])
                       (apply-proc proc-value args))]
-           ;; These all are no-ops
+           ;; These should all be no-ops
            [and-exp (conditions)
                     (eopl:error 'eval-exp "and-exp was not expanded properly: ~s" exp)]
+           [or-exp (conditions)
+                   (eopl:error 'eval-exp "or-exp was not expanded properly: ~s" exp)]
            [cond-exp (conditions bodiess)
                      (eopl:error 'eval-exp "cond-exp was not expanded properly ~s" exp)]
            [let-exp (vars values bodies)
