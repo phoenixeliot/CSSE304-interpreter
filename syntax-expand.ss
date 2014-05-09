@@ -12,9 +12,23 @@
                  (if-exp (syntax-expand condition)
                          (syntax-expand true-body)
                          (syntax-expand false-body))]
-         [let-exp (vars values bodies)
-                  (app-exp (lambda-exp vars #f (map syntax-expand bodies))
-                           (map syntax-expand values))]
+         [let-exp (type vars values bodies)
+                  (cond
+                   [(eq? type 'let)
+                    (app-exp (lambda-exp vars #f (map syntax-expand bodies))
+                             (map syntax-expand values))]
+                   [(eq? type 'let*)
+                    (syntax-expand
+                     (if (null? vars)
+                         (begin-exp bodies)
+                         (let-exp 'let
+                                  (list (1st vars))
+                                  (list (1st values))
+                                  (list (syntax-expand
+                                         (let-exp 'let* (cdr vars) (cdr values) bodies))))))]
+                   [else
+                    (eopl:error 'syntax-expand "Invalid let type ~s" parsed-exp)]
+                   )]
          [app-exp (rator rands) (app-exp (syntax-expand rator) (map syntax-expand rands))]
          [begin-exp (bodies) (app-exp (lambda-exp '() #f (map syntax-expand bodies)) '())]
          [and-exp (conditions)
@@ -36,7 +50,7 @@
                     [(null? (cdr conditions))
                      (1st conditions)]
                     [else
-                     (syntax-expand (let-exp
+                     (syntax-expand (let-exp 'let
                                      (list value-name)
                                      (list (1st conditions))
                                      (list (if-exp (var-exp value-name)
@@ -45,7 +59,7 @@
          [case-exp (key patterns bodiess)
                    (let ([value-name '_:_case-temp_:_]) 
                      (syntax-expand
-                      (let-exp
+                      (let-exp 'let
                        (list value-name)
                        (list key)
                        (list (cond-exp ; convert to cond

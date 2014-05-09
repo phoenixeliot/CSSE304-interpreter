@@ -36,10 +36,10 @@
            [or-exp (conditions)
                    (eopl:error 'eval-exp "or-exp was not expanded properly: ~s" exp)]
            [case-exp (key patterns bodiess)
-                     (eopl:error 'eval-exp "case-exp was not expanded properly ~s" exp)]
+                     (eopl:error 'eval-exp "case-exp was exnot expanded properly ~s" exp)]
            [cond-exp (conditions bodiess)
                      (eopl:error 'eval-exp "cond-exp was not expanded properly ~s" exp)]
-           [let-exp (vars values bodies)
+           [let-exp (type vars values bodies)
                     (eopl:error 'eval-exp "let-exp was not expanded properly: ~s" exp)]
            [begin-exp (bodies)
                       (eopl:error 'eval-exp "begin-exp was not expanded properly ~s" exp)]
@@ -179,7 +179,7 @@
            [var-exp (id) (eq? 'var type)]
            [lambda-exp (re-params op-params bodies) (eq? 'lambda type)]
            [if-exp (condition true-body false-body) (eq? 'if type)]
-           [let-exp (vars values bodies) (eq? 'let type)]
+           [let-exp (type vars values bodies) (eq? 'let type)]
            [app-exp (rator rands) (eq? 'app type)]
            [else
             #f])]

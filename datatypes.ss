@@ -21,10 +21,11 @@
     (condition expression?)
     (true-body expression?)
     (false-body expression?)]
-  [let-exp
-    (vars (list-of symbol?))
-    (values (list-of expression?))
-    (bodies (list-of expression?))]
+  [let-exp ; let, let*
+   (type symbol?)
+   (vars (list-of symbol?))
+   (values (list-of expression?))
+   (bodies (list-of expression?))]
   [begin-exp
    (bodies (list-of expression?))]
   [and-exp

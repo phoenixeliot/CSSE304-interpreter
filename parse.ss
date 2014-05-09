@@ -45,9 +45,10 @@
            (parse-exp (2nd datum)) (parse-exp (3rd datum)) (parse-exp (void))) ; One armed if
           (apply if-exp (map parse-exp (cdr datum)))) ;normal if
       ]
-     [(eqv? 'let (1st datum))
+     [(memv (1st datum) '(let let* letrec))
       (valid-let? datum) ;; error checking
-      (let-exp 
+      (let-exp
+       (1st datum)
        (map 1st (2nd datum)) ; don't parse the variable names, following 'lambda style
        (map parse-exp (map 2nd (2nd datum))) ; values of variable names
        (map parse-exp (cddr datum))) ; bodies of let
