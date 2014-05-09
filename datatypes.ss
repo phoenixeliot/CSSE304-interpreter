@@ -22,23 +22,26 @@
     (true-body expression?)
     (false-body expression?)]
   [let-exp ; let, let*
-   (type symbol?)
-   (vars (list-of symbol?))
-   (values (list-of expression?))
-   (bodies (list-of expression?))]
+    (type symbol?)
+    (vars (list-of symbol?))
+    (values (list-of expression?))
+    (bodies (list-of expression?))]
   [begin-exp
-   (bodies (list-of expression?))]
+    (bodies (list-of expression?))]
   [and-exp
-   (conditions (list-of expression?))]
+    (conditions (list-of expression?))]
   [or-exp
-   (conditions (list-of expression?))]
+    (conditions (list-of expression?))]
   [case-exp
-   (key expression?)
-   (patterns (list-of list?))
-   (bodiess (list-of (list-of expression?)))]
+    (key expression?)
+    (patterns (list-of list?))
+    (bodiess (list-of (list-of expression?)))]
   [cond-exp
-   (conditions (list-of expression?))
-   (bodiess (list-of (list-of expression?)))]
+    (conditions (list-of expression?))
+    (bodiess (list-of (list-of expression?)))]
+  [while-exp
+    (condition expression?)
+    (bodies (list-of expression?))]
   [app-exp        ; application
     (rator expression?)
     (rands (list-of expression?))])

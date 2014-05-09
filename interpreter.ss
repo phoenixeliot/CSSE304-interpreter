@@ -40,9 +40,11 @@
            [cond-exp (conditions bodiess)
                      (eopl:error 'eval-exp "cond-exp was not expanded properly ~s" exp)]
            [let-exp (type vars values bodies)
-                    (eopl:error 'eval-exp "let-exp was not expanded properly: ~s" exp)]
+                    (eopl:error 'eval-exp "~s-exp was not expanded properly: ~s" type exp)]
            [begin-exp (bodies)
                       (eopl:error 'eval-exp "begin-exp was not expanded properly ~s" exp)]
+           [while-exp (condition bodies)
+                      (eopl:error 'eval-exp "while-exp was not expanded properly ~s" exp)]
            [else
             (eopl:error 'eval-exp "Bad abstract syntax: ~a" exp)])))
 
@@ -84,7 +86,7 @@
                (encapsulate-extra-args (cdr re-params) op-params (cdr args)))]))
 
 (define *prim-proc-names*
-  '(+ - * / add1 sub1 zero? not = < > <= >= apply map memv
+  '(+ - * / quotient add1 sub1 zero? not = < > <= >= apply map memv
       cons list vector null? assq eq? equal? atom? length list->vector
       list? pair? procedure? vector->list vector? make-vector vector-ref vector?
       number? symbol? set-car! set-cdr! vector-set! display newline
@@ -115,6 +117,7 @@
     [(-) (apply - args)]
     [(*) (apply * args)]
     [(/) (apply / args)]
+    [(quotient) (apply quotient args)]
     [(add1) (+ (car args) 1)]
     [(sub1) (- (car args) 1)]
     [(zero?) (= (car args) 0)]

@@ -75,6 +75,9 @@
       ;;(valid-cond? datum)
       (cond-exp (map parse-exp (map 1st (cdr datum)))
                 (map (lambda (v) (map parse-exp v)) (map cdr (cdr datum))))]
+      [(eqv? 'while (1st datum))
+        (while-exp (parse-exp (2nd datum))
+                   (map parse-exp (cddr datum)))]
      [else ; application
       (app-exp (parse-exp (1st datum))  ; rator
                (map parse-exp (cdr datum))) ; rand

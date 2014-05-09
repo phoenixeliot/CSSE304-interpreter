@@ -80,5 +80,20 @@
                            (if-exp (syntax-expand (1st conditions))
                                    (syntax-expand (begin-exp (map syntax-expand (1st bodiess))))
                                    (syntax-expand (cond-exp (cdr conditions) (cdr bodiess))))))]
+         [while-exp (condition bodies)
+            (let ((loop-name '_:_loop_:_))
+              (syntax-expand (let-exp 'let
+                       (list loop-name)
+                       (list (lambda-exp (list loop-name)
+                                         #f
+                                         (list (if-exp condition
+                                            (begin-exp (append bodies
+                                                              (list (app-exp (var-exp loop-name)
+                                                                             (list (var-exp loop-name))))))
+                                            (app-exp (var-exp 'void) '())))))
+                       (list (app-exp (var-exp loop-name) (list (var-exp loop-name))))
+                     ))
+            )
+         ]
          [else
           (eopl:error 'syntax-expand "Unhandled parsed-exp: ~s" parsed-exp)]))
