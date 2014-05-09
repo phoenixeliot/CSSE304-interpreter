@@ -35,6 +35,8 @@
                     (eopl:error 'eval-exp "and-exp was not expanded properly: ~s" exp)]
            [or-exp (conditions)
                    (eopl:error 'eval-exp "or-exp was not expanded properly: ~s" exp)]
+           [case-exp (key patterns bodiess)
+                     (eopl:error 'eval-exp "case-exp was not expanded properly ~s" exp)]
            [cond-exp (conditions bodiess)
                      (eopl:error 'eval-exp "cond-exp was not expanded properly ~s" exp)]
            [let-exp (vars values bodies)
@@ -82,7 +84,7 @@
                (encapsulate-extra-args (cdr re-params) op-params (cdr args)))]))
 
 (define *prim-proc-names*
-  '(+ - * / add1 sub1 zero? not = < > <= >= apply map
+  '(+ - * / add1 sub1 zero? not = < > <= >= apply map memv
       cons list vector null? assq eq? equal? atom? length list->vector
       list? pair? procedure? vector->list vector? make-vector vector-ref vector?
       number? symbol? set-car! set-cdr! vector-set! display newline
@@ -124,6 +126,7 @@
     [(>=) (apply >= args)]
     [(apply) (apply-proc (1st args) (2nd args))] 
     [(map) (map-proc (1st args) (2nd args))]
+    [(memv) (apply memv args)]
     [(cons) (apply cons args)]
     [(list) args]                     ;this one is my favorite
     [(vector) (apply vector args)]

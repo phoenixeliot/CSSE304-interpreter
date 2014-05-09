@@ -31,6 +31,10 @@
    (conditions (list-of expression?))]
   [or-exp
    (conditions (list-of expression?))]
+  [case-exp
+   (key expression?)
+   (patterns (list-of list?))
+   (bodiess (list-of (list-of expression?)))]
   [cond-exp
    (conditions (list-of expression?))
    (bodiess (list-of (list-of expression?)))]

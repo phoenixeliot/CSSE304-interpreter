@@ -42,6 +42,22 @@
                                      (list (if-exp (var-exp value-name)
                                                    (var-exp value-name)
                                                    (or-exp (cdr conditions))))))]))]
+         [case-exp (key patterns bodiess)
+                   (let ([value-name '_:_case-temp_:_]) 
+                     (syntax-expand
+                      (let-exp
+                       (list value-name)
+                       (list key)
+                       (list (cond-exp ; convert to cond
+                              (map (lambda (pattern)
+                                     (if (equal? pattern '(else))
+                                         (var-exp 'else)
+                                         (app-exp
+                                          (var-exp 'memv)
+                                          (list (var-exp value-name)
+                                                (lit-exp pattern)))))
+                                   patterns)
+                              bodiess)))))]
          [cond-exp (conditions bodiess) ;list of bodies
                    (if (null? conditions)
                        (app-exp (var-exp 'void) '())

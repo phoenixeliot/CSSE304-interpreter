@@ -61,6 +61,15 @@
      [(eqv? 'or (1st datum))
       ;;(valid-or? datum)
       (or-exp (map parse-exp (cdr datum)))]
+     [(eqv? 'case (1st datum))
+      ;;(valid-case? datum)
+      (case-exp
+       (parse-exp (2nd datum)) ; key
+       (map (lambda (v) (let ([v (1st v)]) ; convert all patterns to list
+                     (if (list? v)
+                         v
+                         (list v)))) (cddr datum)) ; patterns
+       (map (lambda (v) (map parse-exp v)) (map cdr (cddr datum))))]
      [(eqv? 'cond (1st datum))
       ;;(valid-cond? datum)
       (cond-exp (map parse-exp (map 1st (cdr datum)))
