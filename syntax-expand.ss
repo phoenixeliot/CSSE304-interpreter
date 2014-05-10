@@ -26,9 +26,10 @@
                                   (list (1st values))
                                   (list (syntax-expand
                                          (let-exp 'let* (cdr vars) (cdr values) bodies))))))]
-                   [else
-                    (eopl:error 'syntax-expand "Invalid let type ~s" parsed-exp)]
-                   )]
+                   [else ; named let
+                    ;; TODO: add named let here
+                    'named-let]                   
+                    )]
          [app-exp (rator rands) (app-exp (syntax-expand rator) (map syntax-expand rands))]
          [begin-exp (bodies) (app-exp (lambda-exp '() #f (map syntax-expand bodies)) '())]
          [and-exp (conditions)
@@ -51,27 +52,27 @@
                      (1st conditions)]
                     [else
                      (syntax-expand (let-exp 'let
-                                     (list value-name)
-                                     (list (1st conditions))
-                                     (list (if-exp (var-exp value-name)
-                                                   (var-exp value-name)
-                                                   (or-exp (cdr conditions))))))]))]
+                                             (list value-name)
+                                             (list (1st conditions))
+                                             (list (if-exp (var-exp value-name)
+                                                           (var-exp value-name)
+                                                           (or-exp (cdr conditions))))))]))]
          [case-exp (key patterns bodiess)
                    (let ([value-name '_:_case-temp_:_]) 
                      (syntax-expand
                       (let-exp 'let
-                       (list value-name)
-                       (list key)
-                       (list (cond-exp ; convert to cond
-                              (map (lambda (pattern)
-                                     (if (equal? pattern '(else))
-                                         (var-exp 'else)
-                                         (app-exp
-                                          (var-exp 'memv)
-                                          (list (var-exp value-name)
-                                                (lit-exp pattern)))))
-                                   patterns)
-                              bodiess)))))]
+                               (list value-name)
+                               (list key)
+                               (list (cond-exp ; convert to cond
+                                      (map (lambda (pattern)
+                                             (if (equal? pattern '(else))
+                                                 (var-exp 'else)
+                                                 (app-exp
+                                                  (var-exp 'memv)
+                                                  (list (var-exp value-name)
+                                                        (lit-exp pattern)))))
+                                           patterns)
+                                      bodiess)))))]
          [cond-exp (conditions bodiess) ;list of bodies
                    (if (null? conditions)
                        (app-exp (var-exp 'void) '())
@@ -81,19 +82,17 @@
                                    (syntax-expand (begin-exp (map syntax-expand (1st bodiess))))
                                    (syntax-expand (cond-exp (cdr conditions) (cdr bodiess))))))]
          [while-exp (condition bodies)
-            (let ((loop-name '_:_loop_:_))
-              (syntax-expand (let-exp 'let
-                       (list loop-name)
-                       (list (lambda-exp (list loop-name)
-                                         #f
-                                         (list (if-exp condition
-                                            (begin-exp (append bodies
-                                                              (list (app-exp (var-exp loop-name)
-                                                                             (list (var-exp loop-name))))))
-                                            (app-exp (var-exp 'void) '())))))
-                       (list (app-exp (var-exp loop-name) (list (var-exp loop-name))))
-                     ))
-            )
-         ]
+                    (let ((loop-name '_:_loop_:_))
+                      (syntax-expand (let-exp
+                                      'let
+                                      (list loop-name)
+                                      (list (lambda-exp (list loop-name)
+                                                        #f
+                                                        (list (if-exp condition
+                                                                      (begin-exp (append bodies
+                                                                                         (list (app-exp (var-exp loop-name)
+                                                                                                        (list (var-exp loop-name))))))
+                                                                      (app-exp (var-exp 'void) '())))))
+                                      (list (app-exp (var-exp loop-name) (list (var-exp loop-name)))))))]
          [else
           (eopl:error 'syntax-expand "Unhandled parsed-exp: ~s" parsed-exp)]))

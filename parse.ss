@@ -46,12 +46,14 @@
           (apply if-exp (map parse-exp (cdr datum)))) ;normal if
       ]
      [(memv (1st datum) '(let let* letrec))
-      (valid-let? datum) ;; error checking
-      (let-exp
-       (1st datum)
-       (map 1st (2nd datum)) ; don't parse the variable names, following 'lambda style
-       (map parse-exp (map 2nd (2nd datum))) ; values of variable names
-       (map parse-exp (cddr datum))) ; bodies of let
+      ;; (valid-let? datum)
+      (let ([datum (if (symbol? (2nd datum)) ; check if named let
+                       (cdr datum) datum)])
+        (let-exp
+         (1st datum)
+         (map 1st (2nd datum)) ; don't parse the variable names, following 'lambda style
+         (map parse-exp (map 2nd (2nd datum))) ; values of variable names
+         (map parse-exp (cddr datum)))) ; bodies of let
       ]
      [(eqv? 'begin (1st datum))
       ;;(valid-begin? datum)

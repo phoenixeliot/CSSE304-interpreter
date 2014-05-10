@@ -11,6 +11,7 @@
 (define (eval-exp exp env)
   (let ([identity-proc (lambda (x) x)])
     (cases expression exp
+           ;; Theses are the core forms of the interpreter
            [lit-exp (datum) datum]
            [var-exp (id)
                     (apply-env env id 
@@ -30,7 +31,7 @@
                     (let ([proc-value (eval-exp rator env)]
                           [args (eval-rands rands env)])
                       (apply-proc proc-value args))]
-           ;; These should all be no-ops
+           ;; These should all be no-ops, they are simply syntax
            [and-exp (conditions)
                     (eopl:error 'eval-exp "and-exp was not expanded properly: ~s" exp)]
            [or-exp (conditions)
@@ -69,7 +70,6 @@
                                                env)]) ; current environment
                            (for-each (lambda (e) (eval-exp e extended-env)) bodies))]
                    )]
-                                        ; You will add other cases
          [else (error 'apply-proc
                       "Attempt to apply bad procedure: ~s" 
                       proc-value)]))

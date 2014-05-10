@@ -32,4 +32,7 @@
                      (display "======= A16 TESTS =======\n")
                      (load "A16-test-code.ss")
                      (r)
+                     (display "======= A17 TESTS =======\n")
+                     (load "A17-test-code.ss")
+                     (r)
                      )))
