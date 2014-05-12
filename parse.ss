@@ -45,11 +45,14 @@
            (parse-exp (2nd datum)) (parse-exp (3rd datum)) (parse-exp (void))) ; One armed if
           (apply if-exp (map parse-exp (cdr datum)))) ;normal if
       ]
+     [(eqv? 'define (1st datum))
+       ;;(valid-define? datum)
+       (define-exp (2nd datum) (parse-exp (3rd datum)))]
      [(eqv? 'set! (1st datum))
-      ;;(valid-set!? datum)
+       ;;(valid-set!? datum)
       (set!-exp (2nd datum) (parse-exp (3rd datum)))]
      [(memv (1st datum) '(let let* letrec))
-      ;; (valid-let? datum)
+       ;;(valid-let? datum)
       (let ([datum (if (symbol? (2nd datum)) ; check if named let
                        (cdr datum) datum)])
         (let-exp

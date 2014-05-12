@@ -21,6 +21,9 @@
    (condition expression?)
    (true-body expression?)
    (false-body expression?)]
+  [define-exp
+   (id symbol?)
+   (val expression?)]
   [set!-exp
    (id symbol?)
    (val expression?)]
