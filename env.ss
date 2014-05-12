@@ -39,4 +39,4 @@
 
 ;; Get the value of a refernece in an environment
 (define (apply-env env sym succeed fail)
-  (deref (apply-env-ref env sym succeed fail)))
+  (apply-env-ref env sym (lambda (ref)(succeed (deref ref))) fail))

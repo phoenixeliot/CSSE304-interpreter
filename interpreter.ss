@@ -17,7 +17,7 @@
                     (apply-env env id 
                                identity-proc ; procedure to call if id is in the environment 
                                (lambda ()  ; procedure to call if id not in env
-                                 (apply-env-ref global-env id identity-proc
+                                 (apply-env global-env id identity-proc
                                                 (lambda () (eopl:error 'apply-env 
                                                                   "variable not found in environment: ~s"
                                                                   id)))))]
