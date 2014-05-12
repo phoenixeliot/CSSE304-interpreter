@@ -11,51 +11,62 @@
 (define (eval-exp exp env)
   (let ([identity-proc (lambda (x) x)])
     (cases expression exp
-           ;; Theses are the core forms of the interpreter
-           [lit-exp (datum) datum]
-           [var-exp (id)
-                    (apply-env env id 
-                               identity-proc ; procedure to call if id is in the environment 
-                               (lambda ()  ; procedure to call if id not in env
-                                 (apply-env global-env id identity-proc
-                                                (lambda () (eopl:error 'apply-env 
-                                                                  "variable not found in environment: ~s"
-                                                                  id)))))]
-           [set!-exp (id val)
-                     (set-ref!
-                      (apply-env-ref env id
-                                     identity-proc
-                                     (lambda () (eopl:error 'apply-env-ref 
-                                                       "variable not found in environment: ~s"
-                                                       id)))
-                      (eval-exp val env))]
-           [lambda-exp (re-params op-params bodies)
-                       (closure re-params op-params bodies env)]
-           [if-exp (condition true-body false-body)
-                   (if (eval-exp condition env)
-                       (eval-exp true-body env)
-                       (eval-exp false-body env))]
-           [app-exp (rator rands)
-                    (let ([proc-value (eval-exp rator env)]
-                          [args (eval-rands rands env)])
-                      (apply-proc proc-value args))]
-           ;; These should all be no-ops, they are simply syntax
-           [and-exp (conditions)
-                    (eopl:error 'eval-exp "and-exp was not expanded properly: ~s" exp)]
-           [or-exp (conditions)
-                   (eopl:error 'eval-exp "or-exp was not expanded properly: ~s" exp)]
-           [case-exp (key patterns bodiess)
-                     (eopl:error 'eval-exp "case-exp was exnot expanded properly ~s" exp)]
-           [cond-exp (conditions bodiess)
-                     (eopl:error 'eval-exp "cond-exp was not expanded properly ~s" exp)]
-           [let-exp (type vars values bodies)
-                    (eopl:error 'eval-exp "~s-exp was not expanded properly: ~s" type exp)]
-           [begin-exp (bodies)
-                      (eopl:error 'eval-exp "begin-exp was not expanded properly ~s" exp)]
-           [while-exp (condition bodies)
-                      (eopl:error 'eval-exp "while-exp was not expanded properly ~s" exp)]
-           [else
-            (eopl:error 'eval-exp "Bad abstract syntax: ~a" exp)])))
+            ;; Theses are the core forms of the interpreter
+            [lit-exp (datum) datum]
+            [var-exp (id)
+                (apply-env env id 
+                           identity-proc ; procedure to call if id is in the environment 
+                           (lambda ()  ; procedure to call if id not in env
+                             (apply-env global-env id identity-proc
+                                            (lambda () (eopl:error 'apply-env 
+                                                              "variable not found in environment: ~s"
+                                                              id)))))]
+            [define-exp (id val)
+                (apply-env-ref global-env id
+                  (lambda (ref)
+                    (set-ref! ref (eval-exp val env)))
+                  (lambda ()
+                    (set! global-env
+                      (cases environment global-env
+                        [empty-env-record ()
+                          (extended-env-record (list id) (list (box (eval-exp val env))) (empty-env))]
+                        [extended-env-record (ids vals parent-env)
+                          (extended-env-record (cons id ids) (cons (box (eval-exp val env)) vals) (empty-env))]))))]
+            [set!-exp (id val)
+                (set-ref!
+                (apply-env-ref env id
+                               identity-proc
+                               (lambda () (eopl:error 'apply-env-ref 
+                                                 "variable not found in environment: ~s"
+                                                 id)))
+                (eval-exp val env))]
+            [lambda-exp (re-params op-params bodies)
+                (closure re-params op-params bodies env)]
+            [if-exp (condition true-body false-body)
+                (if (eval-exp condition env)
+                    (eval-exp true-body env)
+                    (eval-exp false-body env))]
+            [app-exp (rator rands)
+                (let ([proc-value (eval-exp rator env)]
+                      [args (eval-rands rands env)])
+                  (apply-proc proc-value args))]
+            ;; These should all be no-ops, they are simply syntax
+            [and-exp (conditions)
+                (eopl:error 'eval-exp "and-exp was not expanded properly: ~s" exp)]
+            [or-exp (conditions)
+                (eopl:error 'eval-exp "or-exp was not expanded properly: ~s" exp)]
+            [case-exp (key patterns bodiess)
+                (eopl:error 'eval-exp "case-exp was exnot expanded properly ~s" exp)]
+            [cond-exp (conditions bodiess)
+                (eopl:error 'eval-exp "cond-exp was not expanded properly ~s" exp)]
+            [let-exp (type vars values bodies)
+                (eopl:error 'eval-exp "~s-exp was not expanded properly: ~s" type exp)]
+            [begin-exp (bodies)
+                (eopl:error 'eval-exp "begin-exp was not expanded properly ~s" exp)]
+            [while-exp (condition bodies)
+                (eopl:error 'eval-exp "while-exp was not expanded properly ~s" exp)]
+            [else
+                (eopl:error 'eval-exp "Bad abstract syntax: ~a" exp)])))
 
 ;; evaluate the list of operands, putting results into a list
 (define (eval-rands rands env)
@@ -66,18 +77,18 @@
   (cases proc-val proc-value
          [prim-proc (op) (apply-prim-proc op args)]
          [closure (re-params op-params bodies env)
-                  (cond
-                   [(and (not op-params) (> (length args) (length re-params)))
-                    (error 'apply-proc "Too many arguments in application: ~s")]
-                   [(< (length args) (length re-params))
-                    (error 'apply-proc "Too few arguments in application: ~s")]
-                   [else (let* ([all-params (append re-params (filter (lambda (v) v) (list op-params)))]
-                                [extended-env (extend-env
-                                               all-params ; symbols
-                                               (encapsulate-extra-args re-params op-params args) ; values
-                                               env)]) ; current environment
-                           (for-each (lambda (e) (eval-exp e extended-env)) bodies))]
-                   )]
+                   (cond
+                    [(and (not op-params) (> (length args) (length re-params)))
+                      (error 'apply-proc "Too many arguments in application: ~s")]
+                    [(< (length args) (length re-params))
+                      (error 'apply-proc "Too few arguments in application: ~s")]
+                    [else (let* ([all-params (append re-params (filter (lambda (v) v) (list op-params)))]
+                                 [extended-env (extend-env
+                                                all-params ; symbols
+                                                (encapsulate-extra-args re-params op-params args) ; values
+                                                env)]) ; current environment
+                            (for-each (lambda (e) (eval-exp e extended-env)) bodies))]
+                    )]
          [else (error 'apply-proc
                       "Attempt to apply bad procedure: ~s" 
                       proc-value)]))
@@ -88,10 +99,10 @@
 ;;  => (1 2 3 (4 5))
 (define (encapsulate-extra-args re-params op-params args)
   (cond
-   [(not op-params) args] ;don't encapsulate at all
-   [(null? re-params) (list args)] ;everything leftover gets encapsulated
-   [else (cons (car args)
-               (encapsulate-extra-args (cdr re-params) op-params (cdr args)))]))
+    [(not op-params) args] ;don't encapsulate at all
+    [(null? re-params) (list args)] ;everything leftover gets encapsulated
+    [else (cons (car args)
+                (encapsulate-extra-args (cdr re-params) op-params (cdr args)))]))
 
 (define *prim-proc-names*
   '(+ - * / quotient add1 sub1 zero? not = < > <= >= apply map memv
@@ -104,10 +115,10 @@
 ;; Initial environment
 (define init-env         ; for now, our initial global environment only contains 
   (extend-env            ; procedure names.  Recall that an environment associates
-   *prim-proc-names*   ;  a value (not an expression) with an identifier.
-   (map prim-proc
-        *prim-proc-names*)
-   (empty-env)))
+    *prim-proc-names*   ;  a value (not an expression) with an identifier.
+    (map prim-proc
+         *prim-proc-names*)
+    (empty-env)))
 
 (define global-env init-env)
 
@@ -186,24 +197,23 @@
 ;; Check if datum is of a define datatype
 (define (data-type? type datum)
   (cond
-   [(expression? datum)
-    (cases expression datum
-           [lit-exp (datum) (eq? 'lit type)]
-           [var-exp (id) (eq? 'var type)]
-           [lambda-exp (re-params op-params bodies) (eq? 'lambda type)]
-           [if-exp (condition true-body false-body) (eq? 'if type)]
-           [let-exp (type vars values bodies) (eq? 'let type)]
-           [app-exp (rator rands) (eq? 'app type)]
-           [else
-            #f])]
-   [(proc-val? datum)
-    (cases proc-val datum
-           [prim-proc (name) (eq? 'prim-proc type)]
-           [closure (re-params op-params bodies env) (eq? 'closure type)]
-           [else
-            #f])]
-   [else
-    #f]))
+    [(expression? datum)
+      (cases expression datum
+             [lit-exp (datum) (eq? 'lit type)]
+             [var-exp (id) (eq? 'var type)]
+             [lambda-exp (re-params op-params bodies) (eq? 'lambda type)]
+             [if-exp (condition true-body false-body) (eq? 'if type)]
+             [let-exp (type vars values bodies) (eq? 'let type)]
+             [app-exp (rator rands) (eq? 'app type)]
+             [else
+              #f])]
+    [(proc-val? datum)
+      (cases proc-val datum
+             [prim-proc (name) (eq? 'prim-proc type)]
+             [closure (re-params op-params bodies env) (eq? 'closure type)]
+             [else
+              #f])]
+    [else #f]))
 
 ;; "read-eval-print" loop.
 (define (rep)
@@ -211,10 +221,10 @@
   ;; notice that we don't save changes to the environment...
   (let ([answer (top-level-eval (syntax-expand (parse-exp (read))))])
     (cond
-     [(data-type? 'closure answer)
-      (set! answer '<interpreter-procedure>)]
-     [(data-type? 'prim-proc answer)
-      (set! answer '<primative-procedure>)])
+      [(data-type? 'closure answer)
+        (set! answer '<interpreter-procedure>)]
+      [(data-type? 'prim-proc answer)
+        (set! answer '<primative-procedure>)])
     (eopl:pretty-print answer) (newline)
     (rep)))  ; tail-recursive, so stack doesn't grow.
 

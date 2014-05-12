@@ -12,6 +12,7 @@
                  (if-exp (syntax-expand condition)
                          (syntax-expand true-body)
                          (syntax-expand false-body))]
+         [define-exp (id val) (define-exp id (syntax-expand val))]
          [set!-exp (id val) (set!-exp id (syntax-expand val))]
          [let-exp (type vars values bodies)
                   (cond
