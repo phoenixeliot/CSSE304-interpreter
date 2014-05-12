@@ -1,9 +1,9 @@
-;; Environment definitions for CSSE 304 Scheme interpreter.  Based on EoPL section 2.3
+;; Environment definitions
 (define (empty-env)
   (empty-env-record))
 
 (define (extend-env syms vals env)
-  (extended-env-record syms vals env))
+  (extended-env-record syms (map box vals) env))
 
 (define (list-find-position sym los)
   (list-index (lambda (xsym) (eqv? sym xsym)) los))
@@ -17,8 +17,9 @@
                (+ 1 list-index-r)
                #f))]))
 
+;; Lookup env-ref in environment
 ;; succeed and fail are procedures applied if the var is or isn't found, respectively.
-(define (apply-env env sym succeed fail) 
+(define (apply-env-ref env sym succeed fail) 
   (cases environment env
          [empty-env-record ()
                            (fail)]
@@ -26,4 +27,16 @@
                               (let ([pos (list-find-position sym syms)])
                                 (if (number? pos)
                                     (succeed (list-ref vals pos))
-                                    (apply-env env sym succeed fail)))]))
+                                    (apply-env-ref env sym succeed fail)))]))
+
+;; Dereference a ref in an envrironment
+(define (deref ref)
+  (unbox ref))
+
+;; Set a reference in an environment
+(define (set-ref! ref val)
+  (set-box! ref val))
+
+;; Get the value of a refernece in an environment
+(define (apply-env env sym succeed fail)
+  (deref (apply-env-ref env sym succeed fail)))

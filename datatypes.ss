@@ -21,6 +21,9 @@
    (condition expression?)
    (true-body expression?)
    (false-body expression?)]
+  [set!-exp
+   (id symbol?)
+   (val expression?)]
   [let-exp ; let, let*
    (type symbol?)
    (vars (list-of symbol?))

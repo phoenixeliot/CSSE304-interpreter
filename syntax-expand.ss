@@ -12,6 +12,7 @@
                  (if-exp (syntax-expand condition)
                          (syntax-expand true-body)
                          (syntax-expand false-body))]
+         [set!-exp (id val) (set!-exp id (syntax-expand val))]
          [let-exp (type vars values bodies)
                   (cond
                    [(eq? type 'let)
@@ -26,10 +27,17 @@
                                   (list (1st values))
                                   (list (syntax-expand
                                          (let-exp 'let* (cdr vars) (cdr values) bodies))))))]
-                   [else ; named let
-                    ;; TODO: add named let here
-                    'named-let]                   
-                    )]
+                   [(eq? type 'letrec)
+                    (syntax-expand
+                     (let-exp 'let vars values
+                              (append (map set!-exp vars values) bodies)))]
+                   [else ;named let
+                    (syntax-expand
+                     (app-exp
+                      (let-exp 'letrec (list type)
+                               (list (lambda-exp vars #f bodies))
+                               (list (var-exp type)))
+                      values))])]
          [app-exp (rator rands) (app-exp (syntax-expand rator) (map syntax-expand rands))]
          [begin-exp (bodies) (app-exp (lambda-exp '() #f (map syntax-expand bodies)) '())]
          [and-exp (conditions)

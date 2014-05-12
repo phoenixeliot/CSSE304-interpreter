@@ -17,10 +17,18 @@
                     (apply-env env id 
                                identity-proc ; procedure to call if id is in the environment 
                                (lambda ()  ; procedure to call if id not in env
-                                 (apply-env global-env id identity-proc
-                                            (lambda () (eopl:error 'apply-env 
-                                                              "variable not found in environment: ~s"
-                                                              id)))))]
+                                 (apply-env-ref global-env id identity-proc
+                                                (lambda () (eopl:error 'apply-env 
+                                                                  "variable not found in environment: ~s"
+                                                                  id)))))]
+           [set!-exp (id val)
+                     (set-ref!
+                      (apply-env-ref env id
+                                     identity-proc
+                                     (lambda () (eopl:error 'apply-env-ref 
+                                                       "variable not found in environment: ~s"
+                                                       id)))
+                      (eval-exp val env))]
            [lambda-exp (re-params op-params bodies)
                        (closure re-params op-params bodies env)]
            [if-exp (condition true-body false-body)
@@ -87,9 +95,9 @@
 
 (define *prim-proc-names*
   '(+ - * / quotient add1 sub1 zero? not = < > <= >= apply map memv
-      cons list vector null? assq eq? equal? atom? length list->vector
+      cons list vector null? assq eq? eqv? equal? atom? length list->vector
       list? pair? procedure? vector->list vector? make-vector vector-ref vector?
-      number? symbol? set-car! set-cdr! vector-set! display newline
+      number? symbol? set-car! set-cdr! vector-set! display newline list-tail
       car  cdr caar cddr cadr cdar caaar cdddr caadr cddar cadar cdadr cdaar caddr
       void exit))
 
@@ -136,6 +144,7 @@
     [(null?) (apply null? args)]
     [(assq) (apply assq args)]
     [(eq?) (apply eq? args)]
+    [(eqv?) (apply eqv? args)]
     [(equal?) (apply equal? args)]
     [(atom?) (apply atom? args)]
     [(length) (apply length args)]
@@ -155,6 +164,7 @@
     [(vector-set!) (apply vector-set! args)]
     [(display) (apply display args)]
     [(newline) (apply newline args)]
+    [(list-tail) (apply list-tail args)]
     [(car) (apply car args)] 
     [(cdr) (apply cdr args)] 
     [(caar) (apply caar args)] 
