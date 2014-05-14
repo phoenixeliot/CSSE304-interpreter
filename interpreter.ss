@@ -34,12 +34,13 @@
                           (extended-env-record (cons id ids) (cons (box (eval-exp val env)) vals) (empty-env))]))))]
             [set!-exp (id val)
                 (set-ref!
-                (apply-env-ref env id
-                               identity-proc
-                               (lambda () (eopl:error 'apply-env-ref 
-                                                 "variable not found in environment: ~s"
-                                                 id)))
-                (eval-exp val env))]
+                 (apply-env-ref env id
+                                identity-proc
+                                (lambda () (apply-env-ref global-env id identity-proc
+                                                     (lambda () (eopl:error 'apply-env
+                                                                       "variable not found in environment: ~s"
+                                                                       id)))))
+                 (eval-exp val env))]
             [lambda-exp (re-params op-params bodies)
                 (closure re-params op-params bodies env)]
             [if-exp (condition true-body false-body)
