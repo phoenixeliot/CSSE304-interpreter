@@ -32,12 +32,6 @@
                           (extended-env-record (list id) (list (box (eval-exp val env))) (empty-env))]
                         [extended-env-record (ids vals parent-env)
                           (extended-env-record (cons id ids) (cons (box (eval-exp val env)) vals) (empty-env))]))))]
-                    (set! global-env
-                    (cases environment global-env
-                      [empty-env-record ()
-                        (extended-env-record (list id) (list (box (eval-exp val env))) (empty-env))]
-                      [extended-env-record (ids vals parent-env)
-                        (extended-env-record (cons id ids) (cons (box (eval-exp val env)) vals) (empty-env))]))))]
             [set!-exp (id val)
                 (set-ref!
                 (apply-env-ref env id
