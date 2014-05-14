@@ -24,9 +24,6 @@
   [define-exp
     (id symbol?)
     (val expression?)]
-  [define-exp
-    (id symbol?)
-    (val expression?)]
   [set!-exp
     (id symbol?)
     (val expression?)]
