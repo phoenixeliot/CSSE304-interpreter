@@ -27,6 +27,8 @@
   [set!-exp
    (id symbol?)
    (val expression?)]
+  [ref-exp
+   (ref symbol?)]
   [let-exp ; let, let*
    (type symbol?)
    (vars (list-of symbol?))

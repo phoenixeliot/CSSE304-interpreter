@@ -49,8 +49,11 @@
        ;;(valid-define? datum)
        (define-exp (2nd datum) (parse-exp (3rd datum)))]
      [(eqv? 'set! (1st datum))
-       ;;(valid-set!? datum)
+      ;;(valid-set!? datum)
       (set!-exp (2nd datum) (parse-exp (3rd datum)))]
+     [(eqv? 'ref (1st datum))
+      ;;(valid-ref? datum)
+      (ref-exp (2nd datum))]
      [(memv (1st datum) '(let let* letrec))
        ;;(valid-let? datum)
       (let ([datum (if (symbol? (2nd datum)) ; check if named let

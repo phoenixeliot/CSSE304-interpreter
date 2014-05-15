@@ -110,7 +110,7 @@
                (encapsulate-extra-args (cdr re-params) op-params (cdr args)))]))
 
 (define *prim-proc-names*
-  '(+ - * / quotient add1 sub1 zero? not = < > <= >= apply map memv
+  '(+ - * / quotient add1 sub1 zero? not = < > <= >= apply map memv box unbox box? set-box!
       cons list vector null? assq eq? eqv? equal? atom? length list->vector
       list? pair? procedure? vector->list vector? make-vector vector-ref vector?
       number? symbol? set-car! set-cdr! vector-set! display newline list-tail
@@ -157,6 +157,10 @@
     [(apply) (apply-proc (1st args) (2nd args))] 
     [(map) (map-proc (1st args) (2nd args))]
     [(memv) (apply memv args)]
+    [(box) (apply box args)]
+    [(unbox) (apply unbox args)]
+    [(box?) (apply box? args)]
+    [(set-box!) (apply set-box! args)]
     [(cons) (apply cons args)]
     [(list) args]                     ;this one is my favorite
     [(vector) (apply vector args)]
