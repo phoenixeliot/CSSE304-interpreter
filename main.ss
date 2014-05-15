@@ -35,4 +35,7 @@
                      (display "======= A17 TESTS =======\n")
                      (load "A17-test-code.ss")
                      (r)
+                     (display "======= A18 TESTS =======\n")
+                     (load "A18-test-code.ss")
+                     (r)
                      )))
