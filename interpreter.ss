@@ -15,7 +15,7 @@
            [lit-exp (datum) datum]
            [var-exp (id)
                     (let ([val (apply-env-with-global id env)])
-                      (if (box? val)
+                      (if (box? val) ; check if id was passed by reference
                           (unbox val)
                           val))]
            [define-exp (id val)
@@ -36,7 +36,7 @@
            [set!-exp (id val)
                      (let ([ref (apply-env-ref-with-global id env)])
                        (set-ref!
-                        (if (box? (unbox ref))
+                        (if (box? (unbox ref)) ; id passed by reference?
                             (unbox ref)
                             ref)
                         (eval-exp val env)))]
@@ -99,7 +99,6 @@
                            (for-each (lambda (e) (eval-exp e extended-env)) bodies))]
                    )]
          [ref-closure (params bodies env)
-                      ; (display params) (newline) (display args) (newline)
                       (let ([extended-env (extend-env
                                            (map (lambda  (p) (if (symbol? p) ; TODO: use representation independent solution
                                                             p
@@ -124,7 +123,7 @@
                (encapsulate-extra-args (cdr re-params) op-params (cdr args)))]))
 
 (define *prim-proc-names*
-  '(+ - * / quotient add1 sub1 zero? not = < > <= >= apply map memv box unbox box? set-box!
+  '(+ - * / quotient add1 sub1 zero? not = < > <= >= apply map memv
       cons list vector null? assq eq? eqv? equal? atom? length list->vector
       list? pair? procedure? vector->list vector? make-vector vector-ref vector?
       number? symbol? set-car! set-cdr! vector-set! display newline list-tail
@@ -171,10 +170,6 @@
     [(apply) (apply-proc (1st args) (2nd args))] 
     [(map) (map-proc (1st args) (2nd args))]
     [(memv) (apply memv args)]
-    [(box) (apply box args)]
-    [(unbox) (apply unbox args)]
-    [(box?) (apply box? args)]
-    [(set-box!) (apply set-box! args)]
     [(cons) (apply cons args)]
     [(list) args]                     ;this one is my favorite
     [(vector) (apply vector args)]

@@ -43,8 +43,8 @@
 
 (define (apply-env-with-global sym env)
   (apply-env env sym 
-             (lambda (v) v) ; procedure to call if id is in the environment 
-             (lambda ()  ; procedure to call if id not in env
+             (lambda (v) v)
+             (lambda () 
                (apply-env global-env sym
                           (lambda (v) v)
                           (lambda () (eopl:error 'apply-env-with-global

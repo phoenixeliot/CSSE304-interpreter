@@ -42,10 +42,10 @@
      [(eqv? 'lambda (1st datum))
       ;;(valid-lambda? datum)
       (if (ref-lambda? (2nd datum)) ; check if lambda uses references
-          (ref-lambda-exp (map (lambda (p) (if (symbol? p)
-                                               p
-                                               (parse-exp p)))
-                               (2nd datum)) ; ref-exp
+          (ref-lambda-exp (map (lambda (p) (if (symbol? p) ; check param typ
+                                          p
+                                          (parse-exp p)))
+                               (2nd datum)) ; ref-lambda
                           (map parse-exp (cddr datum)))
           (let-values ([(re-params op-params) ; normal lambda
                         (parse-lambda-args (2nd datum))])
