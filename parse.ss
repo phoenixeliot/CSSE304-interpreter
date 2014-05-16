@@ -19,6 +19,15 @@
                    (loop (cdr p) (cons (car p) res))]))])
       (values (reverse (car res)) (cadr res)))]))
 
+(define (flatten ls)
+  (cond [(null? ls) '()]
+        [(not (pair? ls)) (list ls)]
+        [else (append (flatten (car ls))
+                      (flatten (cdr ls)))]))
+
+(define (ref-lambda? p)
+  (memv 'ref (flatten p)))
+
 (define (parse-exp datum)
   (cond
    [(symbol? datum) (var-exp datum)]
@@ -32,11 +41,17 @@
     (cond
      [(eqv? 'lambda (1st datum))
       ;;(valid-lambda? datum)
-      (let-values ([(re-params op-params)
-                    (parse-lambda-args (2nd datum))])
-        (lambda-exp re-params
-                    op-params
-                    (map parse-exp (cddr datum))))
+      (if (ref-lambda? (2nd datum)) ; check if lambda uses references
+          (ref-lambda-exp (map (lambda (p) (if (symbol? p)
+                                               p
+                                               (parse-exp p)))
+                               (2nd datum)) ; ref-exp
+                          (map parse-exp (cddr datum)))
+          (let-values ([(re-params op-params) ; normal lambda
+                        (parse-lambda-args (2nd datum))])
+            (lambda-exp re-params
+                        op-params
+                        (map parse-exp (cddr datum)))))
       ]
      [(eqv? 'if (1st datum))
       ;;(valid-if? datum)

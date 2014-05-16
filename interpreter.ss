@@ -206,27 +206,6 @@
     [(exit) (exit)]
     [else (error 'apply-prim-proc "Bad primitive procedure name: ~s" prim-proc)]))
 
-;; Check if datum is of a define datatype
-(define (data-type? type datum)
-  (cond
-   [(expression? datum)
-    (cases expression datum
-           [lit-exp (datum) (eq? 'lit type)]
-           [var-exp (id) (eq? 'var type)]
-           [lambda-exp (re-params op-params bodies) (eq? 'lambda type)]
-           [if-exp (condition true-body false-body) (eq? 'if type)]
-           [let-exp (type vars values bodies) (eq? 'let type)]
-           [app-exp (rator rands) (eq? 'app type)]
-           [else
-            #f])]
-   [(proc-val? datum)
-    (cases proc-val datum
-           [prim-proc (name) (eq? 'prim-proc type)]
-           [closure (re-params op-params bodies env) (eq? 'closure type)]
-           [else
-            #f])]
-   [else #f]))
-
 ;; "read-eval-print" loop.
 (define (rep)
   (display "--> ")
