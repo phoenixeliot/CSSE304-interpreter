@@ -14,13 +14,7 @@
            ;; Theses are the core forms of the interpreter
            [lit-exp (datum) datum]
            [var-exp (id)
-                    (apply-env env id 
-                               identity-proc ; procedure to call if id is in the environment 
-                               (lambda ()  ; procedure to call if id not in env
-                                 (apply-env global-env id identity-proc
-                                            (lambda () (eopl:error 'apply-env 
-                                                              "variable not found in environment: ~s"
-                                                              id)))))]
+                    (apply-env-with-global id env)]
            [define-exp (id val)
              (apply-env-ref global-env id
                             (lambda (ref)
@@ -38,12 +32,7 @@
                                          (cons id ids) (cons (box (eval-exp val env)) vals) (empty-env))]))))]
            [set!-exp (id val)
                      (set-ref!
-                      (apply-env-ref env id
-                                     identity-proc
-                                     (lambda () (apply-env-ref global-env id identity-proc
-                                                          (lambda () (eopl:error 'apply-env
-                                                                            "variable not found in environment: ~s"
-                                                                            id)))))
+                      (apply-env-ref-with-global id env)
                       (eval-exp val env))]
            [lambda-exp (re-params op-params bodies)
                        (closure re-params op-params bodies env)]

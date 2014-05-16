@@ -13,7 +13,7 @@
    [(null? ls) #f]
    [(pred (car ls)) 0]
    [else (let ((list-index-r (list-index pred (cdr ls))))
-            (if (number? list-index-r)
+           (if (number? list-index-r)
                (+ 1 list-index-r)
                #f))]))
 
@@ -40,3 +40,22 @@
 ;; Get the value of a refernece in an environment
 (define (apply-env env sym succeed fail)
   (apply-env-ref env sym (lambda (ref)(succeed (deref ref))) fail))
+
+(define (apply-env-with-global sym env)
+  (apply-env env sym 
+             (lambda (v) v) ; procedure to call if id is in the environment 
+             (lambda ()  ; procedure to call if id not in env
+               (apply-env global-env sym
+                          (lambda (v) v)
+                          (lambda () (eopl:error 'apply-env-with-global
+                                            "variable not found in environment: ~s"
+                                            sym))))))
+
+(define (apply-env-ref-with-global sym env)
+  (apply-env-ref env sym
+                 (lambda (v) v)
+                 (lambda () (apply-env-ref global-env sym
+                                      (lambda (v) v)
+                                      (lambda () (eopl:error 'apply-env-ref-with-global
+                                                        "variable not found in environment: ~s"
+                                                        sym))))))
