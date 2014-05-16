@@ -15,7 +15,7 @@
            [lit-exp (datum) datum]
            [var-exp (id)
                     (let ([val (apply-env-with-global id env)])
-                      (if (box? val) ; check if id was passed by reference
+                      (if (box? val) ; id passed by reference?
                           (unbox val)
                           val))]
            [define-exp (id val)
@@ -40,8 +40,8 @@
                             (unbox ref)
                             ref)
                         (eval-exp val env)))]
-           [ref-exp (ref)
-                    ref]
+           [ref-exp (id)
+                    id]
            [lambda-exp (re-params op-params bodies)
                        (closure re-params op-params bodies env)]
            [ref-lambda-exp (params bodies)
