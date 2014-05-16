@@ -78,7 +78,7 @@
    (bodies (list-of expression?))
    (env environment?)]
   [ref-closure
-   (params (list-of (lambda (v) (or (symbol? v) (dat-type? 'ref v)))))
+   (params (list-of (lambda (v) (or (symbol? v) (data-type? 'ref v)))))
    (bodies (list-of expression?))
    (env environment?)])
 
@@ -109,7 +109,7 @@
     (cases proc-val datum
            [prim-proc (name) (eq? 'prim-proc type)]
            [closure (re-params op-params bodies env) (eq? 'closure type)]
-           [ref-closure (re-params op-params bodies env) (eq? 'closure type)]
+           [ref-closure (params bodies env) (eq? 'ref-closure type)]
            [else
             #f])]
    [else #f]))
