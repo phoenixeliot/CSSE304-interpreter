@@ -4,7 +4,6 @@
 
 ;; top-level-eval evaluates a form in the global environment
 (define (top-level-eval form)
-  ;; later we may add things that are not expressions.
   (eval-exp form (empty-env)))
 
 ;; eval-exp is the main component of the interpreter
@@ -212,21 +211,22 @@
     [(cdaar) (apply cdaar args)] 
     [(caddr) (apply caddr args)]
     [(void) (void)]
-    [(exit) (exit)]
     [else (error 'apply-prim-proc "Bad primitive procedure name: ~s" prim-proc)]))
 
 ;; "read-eval-print" loop.
 (define (rep)
   (display "--> ")
-  ;; notice that we don't save changes to the environment...
-  (let ([answer (top-level-eval (syntax-expand (parse-exp (read))))])
-    (cond
-     [(data-type? 'closure answer)
-      (set! answer '<interpreter-procedure>)]
-     [(data-type? 'prim-proc answer)
-      (set! answer '<primative-procedure>)])
-    (eopl:pretty-print answer) (newline)
-    (rep)))  ; tail-recursive, so stack doesn't grow.
+  (let ([read (read)])
+    (if (not (equal? read '(exit)))
+        (let ([answer (top-level-eval (syntax-expand (parse-exp read)))])
+          (cond
+           [(data-type? 'closure answer)
+            (set! answer '<interpreter-procedure>)]
+           [(data-type? 'prim-proc answer)
+            (set! answer '<primative-procedure>)])
+          (if (not (eq? answer (void)))        
+              (eopl:pretty-print answer) (newline))
+          (rep)))))  ; tail-recursive, so stack doesn't grow.
 
 ;; "debug read-eval-print" loop does not sanatize values
 (define (rep-debug)
