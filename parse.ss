@@ -61,8 +61,8 @@
           (apply if-exp (map parse-exp (cdr datum)))) ;normal if
       ]
      [(eqv? 'define (1st datum))
-       ;;(valid-define? datum)
-       (define-exp (2nd datum) (parse-exp (3rd datum)))]
+      ;;(valid-define? datum)
+      (define-exp (2nd datum) (parse-exp (3rd datum)))]
      [(eqv? 'set! (1st datum))
       ;;(valid-set!? datum)
       (set!-exp (2nd datum) (parse-exp (3rd datum)))]
@@ -70,7 +70,7 @@
       ;;(valid-ref? datum)
       (ref-exp (2nd datum))]
      [(memv (1st datum) '(let let* letrec))
-       ;;(valid-let? datum)
+      ;;(valid-let? datum)
       (let ([datum (if (symbol? (2nd datum)) ; check if named let
                        (cdr datum) datum)])
         (let-exp
@@ -101,14 +101,67 @@
       ;;(valid-cond? datum)
       (cond-exp (map parse-exp (map 1st (cdr datum)))
                 (map (lambda (v) (map parse-exp v)) (map cdr (cdr datum))))]
-      [(eqv? 'while (1st datum))
-        (while-exp (parse-exp (2nd datum))
-                   (map parse-exp (cddr datum)))]
+     [(eqv? 'while (1st datum))
+      (while-exp (parse-exp (2nd datum))
+                 (map parse-exp (cddr datum)))]
      [else ; application
       (app-exp (parse-exp (1st datum))  ; rator
                (map parse-exp (cdr datum))) ; rand
       ])]
    [else (eopl:error 'parse-exp "bad expression: ~s" datum)]))
+
+(define (unparse-lambda-args re-params op-params)
+  (cond
+   [(not op-params)
+    re-params]
+   [(not re-params)
+    op-params]
+   [else
+    (let loop ([re (reverse re-params)]
+               [res op-params])
+      (if (null? re)
+          res
+          (loop (cdr re) (cons (car re) res))))]))
+
+(define (unparse-exp exp) ; an inverse for parse-exp
+  (cases expression exp
+         [var-exp (id)
+                  id]
+         [lit-exp (datum)
+                  datum]
+         [set!-exp (id val)
+                   (list 'set! id (unparse-exp val))]
+         [lambda-exp (re-params op-params body)
+                     (cons 'lambda (cons (unparse-lambda-args re-params op-params)
+                                    (map unparse-exp body)))]
+         [ref-lambda-exp (params body)
+                         (cons 'lambda (cons (unparse-lambda-args params #f)
+                                        (map unparse-exp body)))]
+         [if-exp (condition true-body false-body)
+                 (list 'if (unparse-exp condition)
+                       (unparse-exp true-body)
+                       (unparse-exp false-body))]
+         [ref-exp (id)
+                  (list 'ref id)]
+         [app-exp (rator rands)
+                  (cons (unparse-exp rator) (map unparse-exp rands))]
+         [and-exp (conditions)
+                  (eopl:error 'eval-exp "and-exp was not expanded properly: ~s" exp)]
+         [or-exp (conditions)
+                 (eopl:error 'eval-exp "or-exp was not expanded properly: ~s" exp)]
+         [case-exp (key patterns bodiess)
+                   (eopl:error 'eval-exp "case-exp was exnot expanded properly ~s" exp)]
+         [cond-exp (conditions bodiess)
+                   (eopl:error 'eval-exp "cond-exp was not expanded properly ~s" exp)]
+         [let-exp (type vars values bodies)
+                  (eopl:error 'eval-exp "~s-exp was not expanded properly: ~s" type exp)]
+         [begin-exp (bodies)
+                    (eopl:error 'eval-exp "begin-exp was not expanded properly ~s" exp)]
+         [while-exp (condition bodies)
+                    (eopl:error 'eval-exp "while-exp was not expanded properly ~s" exp)]
+         [else
+          (eopl:error 'eval-exp "Bad abstract syntax: ~a" exp)]))
+
 
 ;; Error checking functions
 (define (valid-let? datum)
