@@ -4,14 +4,14 @@
 
 ;; top-level-eval evaluates a form in the global environment
 (define (top-level-eval form)
-  (eval-exp form (empty-env)))
+  (eval-exp form (empty-env) (identity-k)))
 
 ;; eval-exp is the main component of the interpreter
-(define (eval-exp exp env)
+(define (eval-exp exp env k)
   (let ([identity-proc (lambda (x) x)])
     (cases expression exp
            ;; Theses are the core forms of the interpreter
-           [lit-exp (datum) datum]
+           [lit-exp (datum) (apply-k k datum)]
            [var-exp (id)
                     (let ([val (apply-env-with-global id env)])
                       (if (box? val) ; id passed by reference?
@@ -42,13 +42,11 @@
            [ref-exp (id)
                     id]
            [lambda-exp (re-params op-params bodies)
-                       (closure re-params op-params bodies env)]
+                       (apply-k k (closure re-params op-params bodies env))]
            [ref-lambda-exp (params bodies)
-                           (ref-closure params bodies env)]
+                           (apply-k k (ref-closure params bodies env))]
            [if-exp (condition true-body false-body)
-                   (if (eval-exp condition env)
-                       (eval-exp true-body env)
-                       (eval-exp false-body env))]
+                   (eval-exp condition env (if-k true-body false-body env k))]
            [app-exp (rator rands)
                     (let* ([proc-value (eval-exp rator env)]
                            [args (if (data-type? 'ref-closure proc-value)

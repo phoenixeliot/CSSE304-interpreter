@@ -162,7 +162,6 @@
          [else
           (eopl:error 'eval-exp "Bad abstract syntax: ~a" exp)]))
 
-
 ;; Error checking functions
 (define (valid-let? datum)
   (cond

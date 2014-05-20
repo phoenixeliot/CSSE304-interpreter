@@ -82,6 +82,36 @@
    (bodies (list-of expression?))
    (env environment?)])
 
+;; continuation datatype
+(define-datatype continuation continuation?
+  [identity-k]
+  [if-k
+   (true-exp expression?)
+   (false-exp expression?)
+   (env environment?)
+   (k continuation?)]
+  [rator-k
+   (rands (list-of? expression?))
+   (env environment?)
+   (k continuation?)]
+  [rands-k
+   (proc-value scheme-value?)
+   (k continuation?)])
+
+(define (apply-k k val)
+  (cases continuation k
+         [identity-k () val]
+         [if-k (true-exp false-exp env k)
+               (if val
+                   (eval-exp true-exp env k)
+                   (eval-exp false-exp env k))]
+         [rator-k (rands env k)
+                  (eval-rands rands
+                              env
+                              (rands-k val k))]
+         [rands-k (proc-value k)
+                  (apply-proc proc-value val k)]))
+
 ;; Check if datum is of a define datatype
 (define (data-type? type datum)
   (cond
