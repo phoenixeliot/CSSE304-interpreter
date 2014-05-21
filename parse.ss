@@ -41,18 +41,11 @@
     (cond
      [(eqv? 'lambda (1st datum))
       ;;(valid-lambda? datum)
-      (if (ref-lambda? (2nd datum)) ; check if lambda uses references
-          (ref-lambda-exp (map (lambda (p) (if (symbol? p) ; check param typ
-                                          p
-                                          (parse-exp p)))
-                               (2nd datum)) ; ref-lambda
-                          (map parse-exp (cddr datum)))
-          (let-values ([(re-params op-params) ; normal lambda
-                        (parse-lambda-args (2nd datum))])
-            (lambda-exp re-params
-                        op-params
-                        (map parse-exp (cddr datum)))))
-      ]
+      (let-values ([(re-params op-params)
+                    (parse-lambda-args (2nd datum))])
+        (lambda-exp re-params
+                    op-params
+                    (map parse-exp (cddr datum))))]
      [(eqv? 'if (1st datum))
       ;;(valid-if? datum)
       (if (equal? 3 (length datum))
@@ -66,9 +59,6 @@
      [(eqv? 'set! (1st datum))
       ;;(valid-set!? datum)
       (set!-exp (2nd datum) (parse-exp (3rd datum)))]
-     [(eqv? 'ref (1st datum))
-      ;;(valid-ref? datum)
-      (ref-exp (2nd datum))]
      [(memv (1st datum) '(let let* letrec))
       ;;(valid-let? datum)
       (let ([datum (if (symbol? (2nd datum)) ; check if named let
@@ -134,15 +124,10 @@
          [lambda-exp (re-params op-params body)
                      (cons 'lambda (cons (unparse-lambda-args re-params op-params)
                                     (map unparse-exp body)))]
-         [ref-lambda-exp (params body)
-                         (cons 'lambda (cons (unparse-lambda-args params #f)
-                                        (map unparse-exp body)))]
          [if-exp (condition true-body false-body)
                  (list 'if (unparse-exp condition)
                        (unparse-exp true-body)
                        (unparse-exp false-body))]
-         [ref-exp (id)
-                  (list 'ref id)]
          [app-exp (rator rands)
                   (cons (unparse-exp rator) (map unparse-exp rands))]
          [and-exp (conditions)

@@ -16,10 +16,6 @@
    (re-params (list-of symbol?)) ;; required params
    (op-params (lambda (p) (or (eq? #f p) (symbol? p)))) ;; optional params
    (bodies (list-of expression?))]
-  [ref-lambda-exp
-   (params (list-of
-            (lambda (v) (or (symbol? v) (data-type? 'ref v)))))
-   (bodies (list-of expression?))]
   [if-exp
    (condition expression?)
    (true-body expression?)
@@ -30,8 +26,6 @@
   [set!-exp
    (id symbol?)
    (val expression?)]
-  [ref-exp
-   (id symbol?)]
   [let-exp ; let, let*
    (type symbol?)
    (vars (list-of symbol?))
@@ -76,10 +70,6 @@
    (re-params (list-of symbol?))
    (op-params (lambda (p) (or (eq? #f p) (symbol? p))))
    (bodies (list-of expression?))
-   (env environment?)]
-  [ref-closure
-   (params (list-of (lambda (v) (or (symbol? v) (data-type? 'ref v)))))
-   (bodies (list-of expression?))
    (env environment?)])
 
 ;; Check if datum is of a define datatype
@@ -90,11 +80,9 @@
            [lit-exp (datum) (eq? 'lit type)]
            [var-exp (id) (eq? 'var type)]
            [lambda-exp (re-params op-params bodies) (eq? 'lambda type)]
-           [ref-lambda-exp (params bodies) (eq? 'ref-lambda type)]
            [if-exp (condition true-body false-body) (eq? 'if type)]
            [define-exp (id val) (eq? 'define type)]
            [set!-exp (id val)  (eq? 'set! type)]
-           [ref-exp (id) (eq? 'ref type)]
            [let-exp (type vars values bodies) (eq? 'let type)]
            [begin-exp (bodies) (eq? 'begin type)]
            [and-exp (conditions) (eq? 'and type)]
@@ -109,7 +97,6 @@
     (cases proc-val datum
            [prim-proc (name) (eq? 'prim-proc type)]
            [closure (re-params op-params bodies env) (eq? 'closure type)]
-           [ref-closure (params bodies env) (eq? 'ref-closure type)]
            [else
             #f])]
    [else #f]))

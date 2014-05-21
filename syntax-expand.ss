@@ -8,8 +8,6 @@
          [var-exp (id) (var-exp id)]
          [lambda-exp (re-params op-params bodies)
                      (lambda-exp re-params op-params (map syntax-expand bodies))]
-         [ref-lambda-exp (params bodies)
-                         (ref-lambda-exp params (map syntax-expand bodies))]
          [if-exp (condition true-body false-body)
                  (if-exp (syntax-expand condition)
                          (syntax-expand true-body)

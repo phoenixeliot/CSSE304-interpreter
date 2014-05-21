@@ -13,51 +13,31 @@
            ;; Theses are the core forms of the interpreter
            [lit-exp (datum) datum]
            [var-exp (id)
-                    (let ([val (apply-env-with-global id env)])
-                      (if (box? val) ; id passed by reference?
-                          (unbox val)
-                          val))]
+                    (apply-env-with-global id env)]
            [define-exp (id val)
-             (apply-env-ref global-env id
-                            (lambda (ref)
-                              (set-ref! ref (eval-exp val env)))
-                            (lambda ()
-                              (set! global-env
-                                (cases environment global-env
-                                       [empty-env-record
-                                        ()
+             (set! global-env
+               (cases environment global-env
+                      [empty-env-record ()
                                         (extended-env-record
-                                         (list id) (list (box (eval-exp val env))) (empty-env))]
-                                       [extended-env-record
-                                        (ids vals parent-env)
-                                        (extended-env-record
-                                         (cons id ids) (cons (box (eval-exp val env)) vals) (empty-env))]))))]
+                                         (list id) (list (box (eval-exp val env)))
+                                         (empty-env))]
+                      [extended-env-record (ids vals parent-env)
+                                           (extended-env-record
+                                            (cons id ids)
+                                            (cons (box (eval-exp val env)) vals)
+                                            (empty-env))]))]
            [set!-exp (id val)
-                     (let ([ref (apply-env-ref-with-global id env)])
-                       (set-ref!
-                        (if (box? (unbox ref)) ; id passed by reference?
-                            (unbox ref)
-                            ref)
-                        (eval-exp val env)))]
-           [ref-exp (id)
-                    id]
+                     (set-ref!
+                      (apply-env-ref-with-global id env)
+                      (eval-exp val env))]
            [lambda-exp (re-params op-params bodies)
                        (closure re-params op-params bodies env)]
-           [ref-lambda-exp (params bodies)
-                           (ref-closure params bodies env)]
            [if-exp (condition true-body false-body)
                    (if (eval-exp condition env)
                        (eval-exp true-body env)
                        (eval-exp false-body env))]
            [app-exp (rator rands)
-                    (let* ([proc-value (eval-exp rator env)]
-                           [args (if (data-type? 'ref-closure proc-value)
-                                     (map (lambda (a p) (if (symbol? p) ; TODO: use representation independent solution
-                                                       (eval-exp a env)
-                                                       (apply-env-ref-with-global (2nd a) env)))
-                                          rands (2nd proc-value))
-                                     (eval-rands rands env))])
-                      (apply-proc proc-value args))]
+                    (apply-proc (eval-exp rator env) (eval-rands rands env))]
            ;; These should all be no-ops, they are simply syntax
            [and-exp (conditions)
                     (eopl:error 'eval-exp "and-exp was not expanded properly: ~s" exp)]
@@ -95,20 +75,8 @@
                                                all-params ; symbols
                                                (encapsulate-extra-args re-params op-params args) ; values
                                                env)]) ; current environment
-                           (for-each (lambda (e) (eval-exp e extended-env)) bodies))]
-                   )]
-         [ref-closure (params bodies env)
-                      (let ([extended-env (extend-env
-                                           (map (lambda  (p) (if (symbol? p) ; TODO: use representation independent solution
-                                                            p
-                                                            (2nd p)))
-                                                params) ; symbols
-                                           args ; values
-                                           env)])
-                        (for-each (lambda (e) (eval-exp e extended-env)) bodies))]
-         [else (error 'apply-proc
-                      "Attempt to apply bad procedure: ~s" 
-                      proc-value)]))
+                           (for-each (lambda (e) (eval-exp e extended-env)) bodies))])]
+         [else (error 'apply-proc "Attempt to apply bad procedure: ~s" proc-value)]))
 
 ;;This puts the last items from an argument list in their own list
 ;;ex:
