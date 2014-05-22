@@ -51,6 +51,19 @@
    (rator expression?)
    (rands (list-of expression?))])
 
+;;
+(define-datatype continuation continuation?
+  [ident-k]
+  [if-k (true-exp expression?)
+        (false-exp expression?)
+        (env environment?)
+        (k continuation?)]
+  [rator-k (rands (list-of? expression?))
+           (env environment?)
+           (k continuation?)]
+  [rands-k (proc-value scheme-value?)
+           (k continuation?)]) 
+
 ;; environment type definitions
 (define (scheme-value? x)
   #t)

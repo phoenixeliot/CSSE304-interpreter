@@ -4,14 +4,14 @@
 
 ;; top-level-eval evaluates a form in the global environment
 (define (top-level-eval form)
-  (eval-exp form (empty-env)))
+  (eval-exp form (empty-env) (ident-k)))
 
 ;; eval-exp is the main component of the interpreter
-(define (eval-exp exp env)
+(define (eval-exp exp env k)
   (let ([identity-proc (lambda (x) x)])
     (cases expression exp
            ;; Theses are the core forms of the interpreter
-           [lit-exp (datum) datum]
+           [lit-exp (datum) (apply-k k datum)]
            [var-exp (id)
                     (apply-env-with-global id env)]
            [define-exp (id val)
@@ -55,6 +55,21 @@
                       (eopl:error 'eval-exp "while-exp was not expanded properly ~s" exp)]
            [else
             (eopl:error 'eval-exp "Bad abstract syntax: ~a" exp)])))
+
+(define (apply-k k val)
+  (cases continuation k
+         [ident-k ()
+                  val]
+         [if-k (true-exp false-exp env k)
+               (if val
+                   (eval-exp true-exp env k)
+                   (eval-exp false-exp env k))]
+         [rator-k (rands env k)
+                  (eval-rands rands
+                              env
+                              (rands-k val k))]
+         [rands-k (proc-value k)
+                  (apply-proc proc-value val k)])) 
 
 ;; evaluate the list of operands, putting results into a list
 (define (eval-rands rands env)
