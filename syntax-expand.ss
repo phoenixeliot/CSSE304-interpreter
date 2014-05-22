@@ -2,6 +2,10 @@
 (define 2nd cadr)
 (define 3rd caddr)
 
+((lambda (a)
+   (set! a (lambda () (a))) a)
+ (lambda () (a)))
+
 (define (syntax-expand parsed-exp)
   (cases expression parsed-exp
          [lit-exp (datum) (lit-exp datum)]

@@ -58,7 +58,7 @@
         (false-exp expression?)
         (env environment?)
         (k continuation?)]
-  [rator-k (rands (list-of? expression?))
+  [rator-k (rands (list-of expression?))
            (env environment?)
            (k continuation?)]
   [rands-k (proc-value scheme-value?)

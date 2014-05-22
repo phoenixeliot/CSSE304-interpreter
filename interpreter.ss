@@ -13,7 +13,7 @@
            ;; Theses are the core forms of the interpreter
            [lit-exp (datum) (apply-k k datum)]
            [var-exp (id)
-                    (apply-env-with-global id env)]
+                    (apply-k k (apply-env-with-global id env))]
            [define-exp (id val)
              (set! global-env
                (cases environment global-env
@@ -29,15 +29,13 @@
            [set!-exp (id val)
                      (set-ref!
                       (apply-env-ref-with-global id env)
-                      (eval-exp val env))]
+                      (eval-exp val env k))]
            [lambda-exp (re-params op-params bodies)
-                       (closure re-params op-params bodies env)]
+                       (apply-k k (closure re-params op-params bodies env))]
            [if-exp (condition true-body false-body)
-                   (if (eval-exp condition env)
-                       (eval-exp true-body env)
-                       (eval-exp false-body env))]
+                   (eval-exp condition env (if-k true-body false-body env k))]
            [app-exp (rator rands)
-                    (apply-proc (eval-exp rator env) (eval-rands rands env))]
+                    (eval-exp rator env (rator-k rands env k))]
            ;; These should all be no-ops, they are simply syntax
            [and-exp (conditions)
                     (eopl:error 'eval-exp "and-exp was not expanded properly: ~s" exp)]
@@ -72,25 +70,20 @@
                   (apply-proc proc-value val k)])) 
 
 ;; evaluate the list of operands, putting results into a list
-(define (eval-rands rands env)
-  (map (lambda (e) (eval-exp e env)) rands))
+(define (eval-rands rands env k)
+  (apply-k k (map (lambda (e) (eval-exp e env (ident-k))) rands)))
 
 ;;  Apply a procedure to its arguments.
-(define (apply-proc proc-value args)
+(define (apply-proc proc-value args k)
   (cases proc-val proc-value
-         [prim-proc (op) (apply-prim-proc op args)]
+         [prim-proc (op) (apply-prim-proc op args k)]
          [closure (re-params op-params bodies env)
-                  (cond
-                   [(and (not op-params) (> (length args) (length re-params)))
-                    (error 'apply-proc "Too many arguments in application: ~s")]
-                   [(< (length args) (length re-params))
-                    (error 'apply-proc "Too few arguments in application: ~s")]
-                   [else (let* ([all-params (append re-params (filter (lambda (v) v) (list op-params)))]
-                                [extended-env (extend-env
-                                               all-params ; symbols
-                                               (encapsulate-extra-args re-params op-params args) ; values
-                                               env)]) ; current environment
-                           (for-each (lambda (e) (eval-exp e extended-env)) bodies))])]
+                  (let* ([all-params (append re-params (filter (lambda (v) v) (list op-params)))]
+                         [extended-env (extend-env
+                                        all-params ; symbols
+                                        (encapsulate-extra-args re-params op-params args) ; values
+                                        env)]) ; current environment
+                    (for-each (lambda (e) (eval-exp e extended-env k)) bodies))]
          [else (error 'apply-proc "Attempt to apply bad procedure: ~s" proc-value)]))
 
 ;;This puts the last items from an argument list in their own list
@@ -126,74 +119,74 @@
   (set! global-env init-env))
 
 ;; Procedure used for map
-(define (map-proc proc ls)
+(define (map-proc proc ls k)
   (if (null? ls)
       '()
-      (cons (apply-proc proc (list (car ls))) (map-proc proc (cdr ls)))))
+      (cons (apply-proc proc (list (car ls)) k) (map-proc proc (cdr ls) k))))
 
 ;; Usually an interpreter must define each 
 ;; built-in procedure individually.  We are "cheating" a little bit.
-(define (apply-prim-proc prim-proc args)
+(define (apply-prim-proc prim-proc args k)
   (case prim-proc
-    [(+) (apply + args)]
-    [(-) (apply - args)]
-    [(*) (apply * args)]
-    [(/) (apply / args)]
-    [(quotient) (apply quotient args)]
-    [(add1) (+ (car args) 1)]
-    [(sub1) (- (car args) 1)]
-    [(zero?) (= (car args) 0)]
-    [(not) (apply not args)]
-    [(=) (apply = args)]
-    [(<) (apply < args)]
-    [(>) (apply > args)]
-    [(<=) (apply <= args)]
-    [(>=) (apply >= args)]
-    [(apply) (apply-proc (1st args) (2nd args))] 
-    [(map) (map-proc (1st args) (2nd args))]
-    [(memv) (apply memv args)]
-    [(cons) (apply cons args)]
-    [(list) args]                     ;this one is my favorite
-    [(vector) (apply vector args)]
-    [(null?) (apply null? args)]
-    [(assq) (apply assq args)]
-    [(eq?) (apply eq? args)]
-    [(eqv?) (apply eqv? args)]
-    [(equal?) (apply equal? args)]
-    [(atom?) (apply atom? args)]
-    [(length) (apply length args)]
-    [(list->vector) (apply list->vector args)]
-    [(list?) (apply list? args)]
-    [(pair?) (apply pair? args)]
-    [(procedure?) (apply proc-val? args)]
-    [(vector->list) (apply vector->list args)]
-    [(vector?) (apply vector? args)]
-    [(make-vector) (apply make-vector args)]
-    [(vector-ref) (apply vector-ref args)]
-    [(vector?) (apply vector? args)]
-    [(number?) (apply number? args)]
-    [(symbol?) (apply symbol? args)]
-    [(set-car!) (apply set-car! args)]
-    [(set-cdr!) (apply set-cdr! args)]
-    [(vector-set!) (apply vector-set! args)]
-    [(display) (apply display args)]
-    [(newline) (apply newline args)]
-    [(list-tail) (apply list-tail args)]
-    [(car) (apply car args)] 
-    [(cdr) (apply cdr args)] 
-    [(caar) (apply caar args)] 
-    [(cddr) (apply cddr args)] 
-    [(cadr) (apply cadr args)] 
-    [(cdar) (apply cdar args)] 
-    [(caaar) (apply caaar args)] 
-    [(cdddr) (apply cdddr args)] 
-    [(caadr) (apply caadr args)] 
-    [(cddar) (apply cddar args)] 
-    [(cadar) (apply cadar args)] 
-    [(cdadr) (apply cdadr args)] 
-    [(cdaar) (apply cdaar args)] 
-    [(caddr) (apply caddr args)]
-    [(void) (void)]
+    [(+) (apply-k k (apply + args))]
+    [(-) (apply-k k (apply - args))]
+    [(*) (apply-k k (apply * args))]
+    [(/) (apply-k k (apply / args))]
+    [(quotient) (apply-k k (apply quotient args))]
+    [(add1) (apply-k k (+ (car args) 1))]
+    [(sub1) (apply-k k (- (car args) 1))]
+    [(zero?) (apply-k k (= (car args) 0))]
+    [(not) (apply-k k (apply not args))]
+    [(=) (apply-k k (apply = args))]
+    [(<) (apply-k k (apply < args))]
+    [(>) (apply-k k (apply > args))]
+    [(<=) (apply-k k (apply <= args))]
+    [(>=) (apply-k k (apply >= args))]
+    [(apply) (apply-k k (apply-proc (1st args) (2nd args) k))] 
+    [(map) (apply-k k (map-proc (1st args) (2nd args) k))]
+    [(memv) (apply-k k (apply memv args))]
+    [(cons) (apply-k k (apply cons args))]
+    [(list) (apply-k k args)]      
+    [(vector) (apply-k k (apply vector args))]
+    [(null?) (apply-k k (apply null? args))]
+    [(assq) (apply-k k (apply assq args))]
+    [(eq?) (apply-k k (apply eq? args))]
+    [(eqv?) (apply-k k (apply eqv? args))]
+    [(equal?) (apply-k k (apply equal? args))]
+    [(atom?) (apply-k k (apply atom? args))]
+    [(length) (apply-k k (apply length args))]
+    [(list->vector) (apply-k k (apply list->vector args))]
+    [(list?) (apply-k k (apply list? args))]
+    [(pair?) (apply-k k (apply pair? args))]
+    [(procedure?) (apply-k k (apply proc-val? args))]
+    [(vector->list) (apply-k k (apply vector->list args))]
+    [(vector?) (apply-k k (apply vector? args))]
+    [(make-vector) (apply-k k (apply make-vector args))]
+    [(vector-ref) (apply-k k (apply vector-ref args))]
+    [(vector?) (apply-k k (apply vector? args))]
+    [(number?) (apply-k k (apply number? args))]
+    [(symbol?) (apply-k k (apply symbol? args))]
+    [(set-car!) (apply-k k (apply set-car! args))]
+    [(set-cdr!) (apply-k k (apply set-cdr! args))]
+    [(vector-set!) (apply-k k (apply vector-set! args))]
+    [(display) (apply-k k (apply display args))]
+    [(newline) (apply-k k (apply newline args))]
+    [(list-tail) (apply-k k (apply list-tail args))]
+    [(car) (apply-k k (apply car args))] 
+    [(cdr) (apply-k k (apply cdr args))] 
+    [(caar) (apply-k k (apply caar args))] 
+    [(cddr) (apply-k k (apply cddr args))] 
+    [(cadr) (apply-k k (apply cadr args))] 
+    [(cdar) (apply-k k (apply cdar args))] 
+    [(caaar) (apply-k k (apply caaar args))] 
+    [(cdddr) (apply-k k (apply cdddr args))] 
+    [(caadr) (apply-k k (apply caadr args))] 
+    [(cddar) (apply-k k (apply cddar args))] 
+    [(cadar) (apply-k k (apply cadar args))] 
+    [(cdadr) (apply-k k (apply cdadr args))] 
+    [(cdaar) (apply-k k (apply cdaar args))] 
+    [(caddr) (apply-k k (apply caddr args))]
+    [(void) (apply-k k (void))]
     [else (error 'apply-prim-proc "Bad primitive procedure name: ~s" prim-proc)]))
 
 ;; "read-eval-print" loop.
