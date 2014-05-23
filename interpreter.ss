@@ -7,7 +7,7 @@
   (eval-exp form (empty-env) (ident-k)))
 
 (define (print . o)
-  (if #t
+  (if #f
       (begin
         (for-each display o)
         (newline))))
@@ -98,22 +98,19 @@
                  (apply-k k (cons v1 val))])) 
 
 ;; evaluate the list of operands, putting results into a list
-'(define (map-cps proc-cps ls k)
-   (if (null? ls)
-       (apply-k k '())
-       (proc-cps (car ls)
-                 (lambda (v1)
-                   (map-cps proc-cps (cdr ls)
-                           (lambda (v2)
-                             (apply-k k (cons v1 v2))))))))
-
 (define (map-cps proc-cps ls k)
+  (print "===map-cps===")
+  (print "proc-cps: " proc-cps)
+  (print "k: " k "\n")
   (if (null? ls)
       (apply-k k '())
       (proc-cps (car ls) (map1-k proc-cps ls k))))
 
 (define (eval-rands rands env k)
-  (map-cps (lambda (e) (eval-exp e env k)) rands k))
+  (print "===eval-rands===")
+  (print "rands: " rands)
+  (print "k: " k "\n")
+  (map-cps (lambda (e k) (eval-exp e env k)) rands k))
 
 ;;  Apply a procedure to its arguments.
 (define (apply-proc proc-value args k)
