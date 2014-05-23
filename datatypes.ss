@@ -62,7 +62,12 @@
            (env environment?)
            (k continuation?)]
   [rands-k (proc-value scheme-value?)
-           (k continuation?)]) 
+           (k continuation?)]
+  [map1-k (proc-cps procedure?)
+          (ls list?)
+          (k continuation?)]
+  [map2-k (v1 scheme-value?)
+          (k continuation?)]) 
 
 ;; environment type definitions
 (define (scheme-value? x)

@@ -6,6 +6,18 @@
 (define (top-level-eval form)
   (eval-exp form (empty-env) (ident-k)))
 
+(define (print . o)
+  (if #t
+      (begin
+        (for-each display o)
+        (newline))))
+
+'(lambda () (lambda () 1))
+'((lambda () (lambda () 1)))
+'(((lambda () (lambda () 1))))
+'(((lambda () 'a
+      (lambda () 1))))
+
 ;; eval-exp is the main component of the interpreter
 (define (eval-exp exp env k)
   (let ([identity-proc (lambda (x) x)])
@@ -35,6 +47,10 @@
            [if-exp (condition true-body false-body)
                    (eval-exp condition env (if-k true-body false-body env k))]
            [app-exp (rator rands)
+                    (print "===app-exp===")
+                    (print "rator: " rator)
+                    (print "rands: " rands)
+                    (print "k: " k "\n")
                     (eval-exp rator env (rator-k rands env k))]
            ;; These should all be no-ops, they are simply syntax
            [and-exp (conditions)
@@ -63,20 +79,52 @@
                    (eval-exp true-exp env k)
                    (eval-exp false-exp env k))]
          [rator-k (rands env k)
+                  (print "===rator-k===")
+                  (print "val(proc-val): " val)
+                  (print "rands: " rands)
+                  (print "k: " k "\n")
                   (eval-rands rands
                               env
                               (rands-k val k))]
          [rands-k (proc-value k)
-                  (apply-proc proc-value val k)])) 
+                  (print "===rands-k===")
+                  (print "val(rands): " val)
+                  (print "proc-value: " proc-value)
+                  (print "k: " k "\n")
+                  (apply-proc proc-value val k)]
+         [map1-k (proc-cps ls k)
+                 (map-cps proc-cps (cdr ls) (map2-k val k))]
+         [map2-k (v1 k)
+                 (apply-k k (cons v1 val))])) 
 
 ;; evaluate the list of operands, putting results into a list
+'(define (map-cps proc-cps ls k)
+   (if (null? ls)
+       (apply-k k '())
+       (proc-cps (car ls)
+                 (lambda (v1)
+                   (map-cps proc-cps (cdr ls)
+                           (lambda (v2)
+                             (apply-k k (cons v1 v2))))))))
+
+(define (map-cps proc-cps ls k)
+  (if (null? ls)
+      (apply-k k '())
+      (proc-cps (car ls) (map1-k proc-cps ls k))))
+
 (define (eval-rands rands env k)
-  (apply-k k (map (lambda (e) (eval-exp e env (ident-k))) rands)))
+  (map-cps (lambda (e) (eval-exp e env k)) rands k))
 
 ;;  Apply a procedure to its arguments.
 (define (apply-proc proc-value args k)
+  (print "===apply-proc===")
+  (print "proc-value: " proc-value)
+  (print "args: " args)
+  (print "k: " k "\n")
   (cases proc-val proc-value
-         [prim-proc (op) (apply-prim-proc op args k)]
+         [prim-proc (op)
+                    (print "===prim-proc===")
+                    (apply-prim-proc op args k)]
          [closure (re-params op-params bodies env)
                   (let* ([all-params (append re-params (filter (lambda (v) v) (list op-params)))]
                          [extended-env (extend-env
@@ -127,6 +175,10 @@
 ;; Usually an interpreter must define each 
 ;; built-in procedure individually.  We are "cheating" a little bit.
 (define (apply-prim-proc prim-proc args k)
+  (print "===apply-prim-proc===")
+  (print "prim-proc: " prim-proc)
+  (print "args: " args)
+  (print "k: " k "\n")  
   (case prim-proc
     [(+) (apply-k k (apply + args))]
     [(-) (apply-k k (apply - args))]
