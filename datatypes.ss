@@ -71,7 +71,9 @@
   [closure-app-k (k continuation?)]
   [set!-k (id symbol?)
           (env environment?)
-          (k continuation?)]) 
+          (k continuation?)]
+  [define-k (id symbol?)
+    (k continuation?)]) 
 
 ;; environment type definitions
 (define (scheme-value? x)

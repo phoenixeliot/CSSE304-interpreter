@@ -21,18 +21,8 @@
                     (apply-k k datum)]
            [var-exp (id)
                     (apply-k k (apply-env-with-global id env))]
-           [define-exp (id val)
-             (set! global-env
-               (cases environment global-env
-                      [empty-env-record ()
-                                        (extended-env-record
-                                         (list id) (list (box (eval-exp val env)))
-                                         (empty-env))]
-                      [extended-env-record (ids vals parent-env)
-                                           (extended-env-record
-                                            (cons id ids)
-                                            (cons (box (eval-exp val env)) vals)
-                                            (empty-env))]))]
+           [define-exp (id val)            
+             (eval-exp val env (define-k id k))]
            [set!-exp (id val)
                      (eval-exp val env (set!-k id env k))]
            [lambda-exp (re-params op-params bodies)
@@ -80,7 +70,22 @@
          [closure-app-k (k)
                         (apply-k k (car (reverse val)))]
          [set!-k (id env k)
-                 (apply-k k (set-ref! (apply-env-ref-with-global id env) val))])) 
+                 (apply-k k (set-ref! (apply-env-ref-with-global id env) val))]
+         [define-k (id k)
+           (apply-k
+            k
+            (set! global-env
+              (cases environment global-env
+                     [empty-env-record ()
+                                       (extended-env-record
+                                        (list id)
+                                        (list (box val))
+                                        (empty-env))]
+                     [extended-env-record (ids vals parent-env)
+                                         (extended-env-record
+                                          (cons id ids)
+                                          (cons (box val) vals)
+                                          (empty-env))])))])) 
 
 ;; evaluate the list of operands, putting results into a list
 (define (map-cps proc-cps ls k)
