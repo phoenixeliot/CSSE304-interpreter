@@ -39,9 +39,7 @@
                                             (cons (box (eval-exp val env)) vals)
                                             (empty-env))]))]
            [set!-exp (id val)
-                     (set-ref!
-                      (apply-env-ref-with-global id env)
-                      (eval-exp val env k))]
+                     (eval-exp val env (set!-k id env k))]
            [lambda-exp (re-params op-params bodies)
                        (apply-k k (closure re-params op-params bodies env))]
            [if-exp (condition true-body false-body)
@@ -95,7 +93,11 @@
          [map1-k (proc-cps ls k)
                  (map-cps proc-cps (cdr ls) (map2-k val k))]
          [map2-k (v1 k)
-                 (apply-k k (cons v1 val))])) 
+                 (apply-k k (cons v1 val))]
+         [closure-app-k (k)
+                        (apply-k k (car (reverse val)))]
+         [set!-k (id env k)
+                 (apply-k k (set-ref! (apply-env-ref-with-global id env) val))])) 
 
 ;; evaluate the list of operands, putting results into a list
 (define (map-cps proc-cps ls k)
@@ -128,7 +130,7 @@
                                         all-params ; symbols
                                         (encapsulate-extra-args re-params op-params args) ; values
                                         env)]) ; current environment
-                    (for-each (lambda (e) (eval-exp e extended-env k)) bodies))]
+                    (map-cps (lambda (e k) (eval-exp e extended-env k)) bodies (closure-app-k k)))]
          [else (error 'apply-proc "Attempt to apply bad procedure: ~s" proc-value)]))
 
 ;;This puts the last items from an argument list in their own list

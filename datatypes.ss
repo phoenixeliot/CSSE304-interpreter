@@ -67,6 +67,10 @@
           (ls list?)
           (k continuation?)]
   [map2-k (v1 scheme-value?)
+          (k continuation?)]
+  [closure-app-k (k continuation?)]
+  [set!-k (id symbol?)
+          (env environment?)
           (k continuation?)]) 
 
 ;; environment type definitions
