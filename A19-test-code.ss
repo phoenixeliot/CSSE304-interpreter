@@ -4,7 +4,7 @@
 
 (eval-one-exp '
 (+ 5 (call/cc 
-  (lambda (k) (+ 6 (k 7)))))) ; 1. answer: 12      12 points
+      (lambda (k) (+ 6 (k 7)))))) ; 1. answer: 12      12 points
 
 
 (eval-one-exp '
@@ -38,7 +38,7 @@
    (strange1 (call/cc (lambda (k) (k k))))))  ; answer: 112     20  points
 
 (eval-one-exp '(define tester
-  (call/cc (lambda (k)
+                 (call/cc (lambda (k)
      (lambda (x)
        (if (= x 7)
 	   (k 1000)

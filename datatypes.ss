@@ -94,7 +94,9 @@
    (re-params (list-of symbol?))
    (op-params (lambda (p) (or (eq? #f p) (symbol? p))))
    (bodies (list-of expression?))
-   (env environment?)])
+   (env environment?)]
+  [continuation-proc
+   (k continuation?)])
 
 ;; Check if datum is of a define datatype
 (define (data-type? type datum)

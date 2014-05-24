@@ -7,7 +7,7 @@
   (eval-exp form (empty-env) (ident-k)))
 
 (define (print . o)
-  (if #f
+  (if #t
       (begin
         (for-each display o)
         (newline))))
@@ -98,13 +98,8 @@
 
 ;;  Apply a procedure to its arguments.
 (define (apply-proc proc-value args k)
-  (print "===apply-proc===")
-  (print "proc-value: " proc-value)
-  (print "args: " args)
-  (print "k: " k "\n")
   (cases proc-val proc-value
          [prim-proc (op)
-                    (print "===prim-proc===")
                     (apply-prim-proc op args k)]
          [closure (re-params op-params bodies env)
                   (let* ([all-params (append re-params (filter (lambda (v) v) (list op-params)))]
@@ -113,6 +108,8 @@
                                         (encapsulate-extra-args re-params op-params args) ; values
                                         env)]) ; current environment
                     (map-cps (lambda (e k) (eval-exp e extended-env k)) bodies (closure-app-k k)))]
+         [continuation-proc (k)
+                            (apply-k k (car args))]
          [else (error 'apply-proc "Attempt to apply bad procedure: ~s" proc-value)]))
 
 ;;This puts the last items from an argument list in their own list
@@ -127,12 +124,12 @@
                (encapsulate-extra-args (cdr re-params) op-params (cdr args)))]))
 
 (define *prim-proc-names*
-  '(+ - * / quotient add1 sub1 zero? not = < > <= >= apply map memv
+  '(call/cc exit + - * / quotient add1 sub1 zero? not = < > <= >= apply map memv
       cons list vector null? assq eq? eqv? equal? atom? length list->vector
       list? pair? procedure? vector->list vector? make-vector vector-ref vector?
       number? symbol? set-car! set-cdr! vector-set! display newline list-tail
       car  cdr caar cddr cadr cdar caaar cdddr caadr cddar cadar cdadr cdaar caddr
-      void exit))
+      void))
 
 ;; Initial environment
 (define init-env         ; for now, our initial global environment only contains 
@@ -157,6 +154,11 @@
 ;; built-in procedure individually.  We are "cheating" a little bit.
 (define (apply-prim-proc prim-proc args k)
   (case prim-proc
+    [(call/cc)
+     (apply-proc
+      (car args)
+      (list (continuation-proc k)) k)]
+    [(exit) args]
     [(+) (apply-k k (apply + args))]
     [(-) (apply-k k (apply - args))]
     [(*) (apply-k k (apply * args))]
@@ -221,17 +223,15 @@
 ;; "read-eval-print" loop.
 (define (rep)
   (display "--> ")
-  (let ([read (read)])
-    (if (not (equal? read '(exit)))
-        (let ([answer (top-level-eval (syntax-expand (parse-exp read)))])
-          (cond
-           [(data-type? 'closure answer)
-            (set! answer '<interpreter-procedure>)]
-           [(data-type? 'prim-proc answer)
-            (set! answer '<primative-procedure>)])
-          (if (not (eq? answer (void)))        
-              (eopl:pretty-print answer) (newline))
-          (rep)))))  ; tail-recursive, so stack doesn't grow.
+  (let ([answer (top-level-eval (syntax-expand (parse-exp ( read))))])
+    (cond
+     [(data-type? 'closure answer)
+      (set! answer '<interpreter-procedure>)]
+     [(data-type? 'prim-proc answer)
+      (set! answer '<primative-procedure>)])
+    (if (not (eq? answer (void)))        
+        (eopl:pretty-print answer) (newline))
+    (rep)))  ; tail-recursive, so stack doesn't grow.
 
 ;; "debug read-eval-print" loop does not sanatize values
 (define (rep-debug)
